@@ -389,6 +389,12 @@ describe("commute search, saved selections and honest departures", () => {
       ),
     ).toBeTruthy();
     expect(
+      within(alert).getByText("7 Nov 2026, 10:00 am").getAttribute("dateTime"),
+    ).toBe(iso(-3_600_000));
+    expect(
+      within(alert).getByText("8 Nov 2026, 11:00 am").getAttribute("dateTime"),
+    ).toBe(iso(86_400_000));
+    expect(
       within(alert)
         .getByRole("link", { name: /^Operator update/ })
         .getAttribute("href"),

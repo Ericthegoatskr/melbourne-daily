@@ -36,6 +36,12 @@ import {
 } from "../lib/resource";
 import { ExternalLink, SourceTime } from "./ui";
 
+const serviceDate = new Intl.DateTimeFormat("en-AU", {
+  timeZone: "Australia/Melbourne",
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+
 function selectionId(item: TransitSelection) {
   return `${item.stop.idScheme}:${item.stop.mode}:${item.stop.id}:${item.routeId ?? "all"}:${item.directionId ?? "all"}`;
 }
@@ -478,6 +484,27 @@ export default function CommutePanel({
                       <p>
                         {alert.description || "Check the operator for details."}
                       </p>
+                      {(alert.startsAt || alert.endsAt) && (
+                        <p>
+                          {alert.startsAt && (
+                            <>
+                              From{" "}
+                              <time dateTime={alert.startsAt}>
+                                {serviceDate.format(new Date(alert.startsAt))}
+                              </time>
+                            </>
+                          )}
+                          {alert.startsAt && alert.endsAt ? " · " : ""}
+                          {alert.endsAt && (
+                            <>
+                              Until{" "}
+                              <time dateTime={alert.endsAt}>
+                                {serviceDate.format(new Date(alert.endsAt))}
+                              </time>
+                            </>
+                          )}
+                        </p>
+                      )}
                       {alert.url && (
                         <ExternalLink href={alert.url}>
                           Operator update
