@@ -323,9 +323,7 @@ describe("dashboard interactions and data honesty", () => {
         expect(link.getAttribute("rel")).toContain("noopener");
       }
     }
-    expect(
-      screen.getByText("Live departures and status open on official sites."),
-    ).toBeTruthy();
+    expect(screen.getByText("More official transport tools.")).toBeTruthy();
   });
 
   it("ages out UV and parking numbers even when repeated downloads have an old source timestamp", async () => {

@@ -1,0 +1,50 @@
+name: Refresh public transport stop directory
+
+on:
+  schedule:
+    # Monday 04:23 AEST / 05:23 AEDT. Scheduled runs are best effort.
+    - cron: "23 18 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-transit-stops
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: main
+      - name: Collect and validate the official train and tram directory
+        run: python3 scripts/update-transit-stops.py
+      - name: Commit the changed directory only
+        id: snapshot
+        run: |
+          if git diff --quiet -- public/data/transport-stops.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --check -- public/data/transport-stops.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- public/data/transport-stops.json
+          git commit --only -m "chore: refresh public transport stop directory" -- public/data/transport-stops.json
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      - name: Deploy the updated directory through the verified Pages workflow
+        if: steps.snapshot.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        # GITHUB_TOKEN pushes do not trigger a push workflow; dispatch explicitly.
+        run: gh workflow run pages.yml --ref main

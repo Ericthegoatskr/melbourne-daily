@@ -24,7 +24,11 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
-      - run: npm run verify
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_DATA_API_URL: ${{ vars.VITE_DATA_API_URL }}
+      - run: npm run build:api
       - name: Configure Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5

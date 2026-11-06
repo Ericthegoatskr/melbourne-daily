@@ -51,6 +51,8 @@ import {
   WeatherIcon,
 } from "./components/ui";
 import { forecastDayLabel, forecastIsDay, melbourneDate } from "./lib/forecast";
+import CommutePanel from "./components/CommutePanel";
+import EpaPanel from "./components/EpaPanel";
 
 const PARKING_URL =
   "https://ericthegoatskr.github.io/melbourne-parking-dashboard/";
@@ -396,7 +398,7 @@ export default function App() {
             Sources & status
           </a>
           <ExternalLink href={REPO_URL}>View on GitHub</ExternalLink>
-          <span className="version">MELBOURNE DAILY · V1.0</span>
+          <span className="version">MELBOURNE DAILY · V1.1</span>
         </div>
       </aside>
 
@@ -634,9 +636,8 @@ export default function App() {
                     <span>11+</span>
                   </div>
                   <p className="uv-explanation">
-                    Observed at the Melbourne station.
-                    <br />
-                    This reading is the same for all suburbs.
+                    Observed at the Melbourne station. This reading is the same
+                    for all suburbs.
                   </p>
                 </div>
               ) : (
@@ -697,6 +698,7 @@ export default function App() {
               <p className="card-subtitle">
                 Your everyday links for a smoother trip.
               </p>
+              <CommutePanel now={now} revision={revision} />
               {favorites.length > 0 && (
                 <div className="favorite-strip">
                   <Bookmark size={13} />
@@ -756,7 +758,7 @@ export default function App() {
                 ))}
               </div>
               <div className="transport-bottom">
-                <span>Live departures and status open on official sites.</span>
+                <span>More official transport tools.</span>
                 <ExternalLink href={roadTrafficLink.url}>
                   {roadTrafficLink.label}
                 </ExternalLink>
@@ -912,11 +914,15 @@ export default function App() {
                   <Wind size={19} />
                   <h2 id="air-title">Air quality</h2>
                 </div>
-                <Badge>Regional model</Badge>
+                <Badge>Observations & model</Badge>
               </div>
               <p className="card-subtitle">
-                {location.name} area · Model estimate, not an EPA measurement
+                {location.name} area · Station readings and regional estimates
               </p>
+              <EpaPanel location={location} now={now} revision={revision} />
+              <h3 className="regional-model-heading">
+                Regional model estimate
+              </h3>
               {a ? (
                 <div className="air-numbers">
                   <div>
@@ -1096,8 +1102,10 @@ export default function App() {
                   All times use Australia/Melbourne and adjust for daylight
                   saving. “Valid at” is the forecast’s effective time, not its
                   model issue time. A successful download does not mean a new
-                  observation. Transport departures and EPA station measurements
-                  are currently available through the linked official services.
+                  observation. Departures and station readings are shown when
+                  the official services are available. Missing live estimates
+                  remain explicitly scheduled; missing air readings never imply
+                  good air quality.
                 </p>
                 <p>
                   Weather and air estimates use Open-Meteo’s free non-commercial

@@ -1,8 +1,8 @@
 # Data sources and coverage
 
-Verified on 7 November 2026, in the Australia/Melbourne time zone. Melbourne Daily is a static GitHub Pages application. The browser requests public feeds directly; no API credentials are bundled. Application polling intervals below are product settings, not provider guarantees.
+Reviewed on 7 November 2026, in the Australia/Melbourne time zone. Melbourne Daily serves its frontend on GitHub Pages. Public feeds are requested directly from the browser; the bundled GTFS directory supports stop search without credentials. PTV/EPA adapters exist in a separate backend, but provider credentials and a public backend connection are still pending. No API credentials are bundled. Application polling intervals below are product settings, not provider guarantees.
 
-## Version 1
+## Current release and connection status
 
 | Module           | Content                                                            | Coverage                                                         | Provider cadence / application polling                                                       |
 | ---------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -10,10 +10,11 @@ Verified on 7 November 2026, in the Australia/Melbourne time zone. Melbourne Dai
 | UV               | Observed UV index and separate modeled daily maximum               | ARPANSA Melbourne station; forecast grid for the selected suburb | Observations approximately every minute / every minute                                       |
 | Parking          | Reporting sensor counts, available bays and street summaries       | Sensor-equipped City of Melbourne bays                           | Approximately two minutes in the original parking project's measurements / every two minutes |
 | Modeled air      | PM2.5 and PM10 estimates                                           | CAMS Global grid, approximately 45 km                            | Model updates every 12 hours; native three-hourly output / every 30 minutes                  |
-| EPA observations | Links to official measurements and guidance                        | EPA monitoring sites across Victoria                             | Hourly observations; regional forecasts at 5 pm for the next 24 hours                        |
-| Public transport | Official departures, journey planning and service-update links     | Victorian public transport                                       | No live arrival or service-status feed is embedded in this version                           |
+| Stop search and favourites | Official static train/tram boarding points; local saved selections | Greater Melbourne bounding box described below | Provider normally weekly/as needed; directory refresh scheduled weekly |
+| EPA observations | Station panel implemented; live feed awaits credentials and public backend | Nearest eligible EPA station within 100 km of the selected suburb | Provider hourly; intended client polling 15 minutes and backend cache five minutes |
+| PTV departures | Board, directions, cancellations and alerts implemented; live feed awaits credentials and public backend | Selected Metro train or tram stop | Live estimates when supplied; intended client polling 30 seconds and backend cache 25 seconds |
 
-The air estimates are not EPA observations. Transport shortcuts open the official service rather than claiming that this application has retrieved its live operating status.
+The air estimates are not EPA observations. Without a connected backend, the site preserves stop search/favourites and shows unavailable states with official alternatives for PTV and EPA. A private backend deployment and fixture tests are not proof of live provider access.
 
 ## Weather and UV forecasts: Open-Meteo
 
@@ -53,17 +54,21 @@ CAMS Global has approximately 45 km spatial resolution, native three-hourly data
 
 No EPA category or US/European AQI is calculated from these values. Missing concentrations, changed units and invalid or stale valid times cause the adapter to reject the response. Credit both CAMS / Copernicus Atmosphere Monitoring Service and Open-Meteo. The free API's non-commercial and request-volume conditions also apply here.
 
-## EPA observations: authenticated integration remains separate
+## EPA observations: implemented, awaiting authorised live verification
 
 Sources: [EPA AirWatch](https://www.epa.vic.gov.au/check-air-and-water-quality), [developer portal](https://portal.api.epa.vic.gov.au/) and [air quality categories](https://www.epa.vic.gov.au/air-quality-categories).
 
-EPA's developer portal requires registration, a product subscription and an API key. It lists a default rate limit of five requests per second. This project has no EPA subscription key, so authenticated payloads, CORS and individual pollutant fields have not been validated. The public AirWatch website is available through links in the application.
+EPA's developer portal requires registration, a product subscription and an API key. It lists a default rate limit of five requests per second. The adapter is based on the official Environment Monitoring API schema linked from [DataVic](https://discover.data.vic.gov.au/dataset/environment-monitoring-api), with fixture tests for that documented contract. This project still has no EPA subscription key: actual authorised production payloads, the subscribed authentication header and the deployed end-to-end connection remain unverified. Public AirWatch remains available through links in the application.
 
 EPA reports hourly measurements and five categories: Good, Fair, Poor, Very Poor and Extremely Poor. Its regional forecast updates daily at 5 pm for the following 24 hours. Monitoring coverage and equipment availability differ by site and pollutant. Missing or stalled readings must remain unavailable, not be interpreted as Good.
 
-A future integration needs authorised credentials and a backend that protects them. Validate each observation time and quality flag before displaying a station value. GitHub Pages does not provide secret storage for browser code: do not put API keys in `VITE_*` variables or public JavaScript.
+The backend calls the official `/environmentMonitoring/v1/sites/parameters?environmentalSegment=air` endpoint. It accepts supported hourly intervals, recognised concentration units, positive sample counts and numeric confidence of at least 75%. That confidence cutoff is this application's quality rule, not an EPA health threshold. Missing, conflicting, older than three hours, future-dated or unsupported readings remain unavailable. EPA's own category is preserved only when a valid supplied category is present; it is never calculated from CAMS concentrations.
 
-## Transport: official destinations and future realtime integration
+The frontend expires fields independently, then chooses the nearest station with at least one usable field within 100 km of the selected suburb. The displayed category and pollutants belong to that station; missing pollutants are not silently borrowed from another station. Station distance describes the monitoring location, not the precision of an inferred reading at the user's suburb. Source timestamps represent the end of each one-hour observation interval, separately from backend retrieval time.
+
+Credentials stay in the backend runtime. GitHub Pages does not provide secret storage for browser code: do not put API keys in `VITE_*` variables or public JavaScript. See [backend configuration and live-access gates](backend.md).
+
+## Transport: public directory and credential-gated PTV board
 
 Verified official destinations:
 
@@ -74,11 +79,17 @@ Verified official destinations:
 - [Yarra Trams service changes](https://yarratrams.com.au/service-changes)
 - [VicTraffic road information](https://traffic.transport.vic.gov.au/)
 
-[GTFS Schedule](https://opendata.transport.vic.gov.au/dataset/gtfs-schedule) provides public static timetables for Victorian trains, trams and buses. It normally updates weekly or as needed and covers a rolling 30 days. Scheduled departures are not estimated arrivals.
+[GTFS Schedule](https://opendata.transport.vic.gov.au/dataset/gtfs-schedule) provides public static timetables for Victorian trains, trams and buses. It normally updates weekly or as needed and covers a rolling 30 days. The published directory uses serving Metro train/tram stops within latitude -38.6 to -37.3 and longitude 144.3 to 145.7. It retains distinct platforms, tram boarding points and named rail-replacement boarding points. The initial 2,165 records are not a count of named stations. They enable local search and up to six saved stop selections without a key, but supply no departures or realtime status.
 
-[GTFS Realtime](https://opendata.transport.vic.gov.au/dataset/gtfs-realtime) requires a key. Its catalogue specifies a `KeyID` header and 24 calls per 60 seconds for each of Metro Train, Tram and Bus. Tram data refreshes every 60 seconds; train and bus data are described as near realtime. An unauthenticated Trip Updates request returned 401 during development. Some downloadable OpenAPI documents describe a different authentication header; validate this using an authorised key rather than assuming it is interchangeable with PTV Timetable API credentials.
+The [weekly refresh workflow](../.github/workflows/refresh-transit-stops.yml) uses the official archive's Last-Modified time and publishes only the compact validated directory. It explicitly dispatches Pages after a changed-data commit. Scheduled collection can be delayed; the source timestamp and successful deployment determine the actual snapshot age. See [directory maintenance](transit-directory.md).
 
-Future arrivals require a correct GTFS-RT/static-GTFS join, service-day handling, cancellations and explicit fallback to scheduled information. Missing realtime data does not mean a service is on time. Transport Victoria's [realtime information guide](https://transport.vic.gov.au/help-and-support/other-public-transport-help/real-time-information-in-journey-planner) also distinguishes live and timetable-only services.
+The implemented live board uses [PTV Timetable API v3](https://www.vic.gov.au/public-transport-timetable-api), whose [official Swagger contract](https://timetableapi.ptv.vic.gov.au/swagger/docs/v3) documents signed requests and `gtfs=true` for GTFS stop IDs. Saved selections preserve their identifier scheme; PTV route/direction IDs are not assumed to equal GTFS route/direction IDs. The UI displays up to five upcoming services, distinct scheduled/estimated/cancelled states, and relevant active service alerts. Route/direction-specific favourites become selectable when that authenticated response is available.
+
+PTV `checkedAt` records when the backend completed its lookup; it is not an upstream observation timestamp. The UI labels it “Checked”, polls every 30 seconds and hides the board and associated alerts after 120 seconds without a successful refresh. A missing live prediction is displayed as scheduled, not “on time”. Public upstream documentation and fixtures have been checked, but actual authenticated train/tram responses and production GTFS-to-PTV identity matching still need this project's credentials.
+
+[GTFS Realtime](https://opendata.transport.vic.gov.au/dataset/gtfs-realtime) is an alternative integration, not the live backend implemented here. It requires a separate key. Its catalogue specifies a `KeyID` header and 24 calls per 60 seconds for each of Metro Train, Tram and Bus. Tram data refreshes every 60 seconds; train and bus data are described as near realtime. An unauthenticated Trip Updates request returned 401 during development. Some downloadable OpenAPI documents describe a different authentication header; these credentials must not be assumed interchangeable with PTV Timetable API credentials.
+
+If a future version changes to GTFS Realtime, it must join the correct static trips/service days, including times past midnight, and preserve cancellations and scheduled fallbacks. Transport Victoria's [realtime information guide](https://transport.vic.gov.au/help-and-support/other-public-transport-help/real-time-information-in-journey-planner) also distinguishes live and timetable-only services. Transport attribution is “Licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence.”
 
 ## Freshness and failure behavior
 
@@ -86,5 +97,5 @@ Future arrivals require a correct GTFS-RT/static-GTFS join, service-day handling
 2. Load, refresh and report failures independently for each feed.
 3. Never substitute demo numbers for unavailable live data. Keep official destinations accessible.
 4. Recalculate freshness as time passes and when a background tab becomes visible. Reject older responses that would replace a newer accepted result.
-5. Hide expired values: weather after 90 minutes, UV and parking after 15 minutes, and modeled air after three hours. These are product limits, not provider guarantees.
-6. GitHub Actions builds and deploys the application. Browser HTTPS requests fetch data; scheduled deployment jobs are not used as a minute-by-minute data collector.
+5. Hide expired values: weather after 90 minutes, UV and parking after 15 minutes, modeled air and individual EPA observations after three hours, and the PTV board after two minutes. These are product limits, not provider guarantees. The last two integrations still await live activation.
+6. GitHub Actions builds/deploys the application and maintains the weekly stop directory. Browser HTTPS requests and the optional authenticated backend fetch active data; scheduled deployment jobs are not used as a minute-by-minute data collector.
