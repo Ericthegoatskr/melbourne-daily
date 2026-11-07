@@ -4,5 +4,8 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   base: "/melbourne-daily/",
   plugins: [react()],
+  build: {
+    rolldownOptions: { input: { main: "index.html", weather: "weather.html" } },
+  },
   test: { environment: "jsdom", restoreMocks: true, clearMocks: true },
 });

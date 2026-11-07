@@ -524,6 +524,9 @@ export default function App() {
                 <ExternalLink href="https://open-meteo.com/">
                   Open-Meteo
                 </ExternalLink>
+                <a href={`${import.meta.env.BASE_URL}weather.html`}>
+                  Open weather & UV dashboard<ArrowUpRight size={14} aria-hidden="true" />
+                </a>
                 {weather.data && (
                   <SourceTime
                     label="Valid at"

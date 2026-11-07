@@ -2,7 +2,7 @@
 
 An English-language dashboard for everyday Melbourne: weather, UV, parking, regional air estimates and public transport in one place.
 
-[Dashboard](https://ericthegoatskr.github.io/melbourne-daily/) · [Full parking dashboard](https://ericthegoatskr.github.io/melbourne-parking-dashboard/) · [Data sources](docs/data-sources.md) · [Release checklist](docs/remaining-scope.md)
+[Dashboard](https://ericthegoatskr.github.io/melbourne-daily/) · [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html) · [Full parking dashboard](https://ericthegoatskr.github.io/melbourne-parking-dashboard/) · [Data sources](docs/data-sources.md) · [Release checklist](docs/remaining-scope.md)
 
 GitHub Pages serves the revision from the latest successful deployment. **EPA station observations are live on the public homepage** through a validated JSON snapshot, with provider credentials kept out of the browser. PTV departures are implemented but remain unavailable until their credentials are configured.
 
@@ -10,12 +10,15 @@ GitHub Pages serves the revision from the latest successful deployment. **EPA st
 
 The homepage uses a shared white-and-orange visual system with lavender, mint and peach summary cards. It includes an interactive hourly weather chart, keyboard and touch forecast selection, weather illustrations, finite entrance animations and feedback when readings change. Reduced-motion preferences disable animation. Summary cards preserve the same source times and expiry rules as their detailed panels.
 
-The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). This release establishes the entrance page's style. The separate Parking Dashboard remains available at its existing link.
+The [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html) gives weather its own destination, linked from the homepage weather card. It shares the suburb preference, forecast interaction, weather artwork and reading-change animation with the homepage. Its dedicated layout adds current-weather metric tiles, an hourly model UV chart and a sunrise/sunset panel. Observed station UV stays separate from forecast UV, and expired readings remain hidden.
+
+The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). The homepage, weather page and separate Parking Dashboard use the same collection style. Weather-specific layout rules are scoped in `src/WeatherDashboard.css`.
 
 ## Available without credentials
 
 - A shared suburb selector, modeled current weather, a 24-hour forecast and a three-day outlook.
 - ARPANSA's observed Melbourne UV index, separate from modeled daily maximum UV.
+- A dedicated weather page with hourly model UV, sunrise, sunset and elapsed daylight based on the selected suburb's forecast.
 - City of Melbourne parking sensor totals and street summaries, with access to the existing parking map.
 - CAMS Global PM2.5 and PM10 estimates, labeled as regional model values rather than EPA observations.
 - Metro train and tram stop search using the official GTFS directory. Save up to six stop selections in the current browser, restore them on the next visit and remove them individually.
@@ -45,6 +48,8 @@ npm run dev
 
 Open the URL printed by Vite, including `/melbourne-daily/`. No environment variables are required for the public feeds and local stop directory.
 
+The dedicated weather page is at `/melbourne-daily/weather.html` on the same local server.
+
 ```sh
 npm run verify
 npm run preview
@@ -52,9 +57,11 @@ npm run preview
 
 Verification runs the tests, TypeScript checking and production builds. Preview serves the frontend production bundle.
 
+For weather-page changes, also inspect desktop and narrow mobile layouts in the production preview. Check suburb switching, hourly/daily forecast controls, keyboard hour selection, mobile navigation, independent weather/UV failures and expiry. Verify that a valid observed UV of zero remains visible, while missing hourly UV stays unavailable.
+
 ## GitHub Pages and directory updates
 
-The repository is `Ericthegoatskr/melbourne-daily`, with Vite's base path set to `/melbourne-daily/`. Pages uses **GitHub Actions** as its build and deployment source. [pages.yml](.github/workflows/pages.yml) verifies the project before deploying `dist/`.
+The repository is `Ericthegoatskr/melbourne-daily`, with Vite's base path set to `/melbourne-daily/`. Its multi-page build emits both `index.html` and `weather.html`. Pages uses **GitHub Actions** as its build and deployment source. [pages.yml](.github/workflows/pages.yml) verifies the project before deploying `dist/`.
 
 [refresh-transit-stops.yml](.github/workflows/refresh-transit-stops.yml) runs weekly on Monday morning in Melbourne and can be started manually from Actions. It collects and validates the Metro train/tram directory, commits only `public/data/transport-stops.json` when the source or records change, then explicitly dispatches the Pages workflow. GitHub does not trigger a push workflow from a normal `GITHUB_TOKEN` push, so this dispatch is necessary. See [GitHub's workflow-trigger documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
@@ -66,6 +73,11 @@ Live public feeds are requested in the browser. The EPA snapshot workflow is con
 
 ```text
 src/App.tsx                    Dashboard and navigation
+src/WeatherApp.tsx             Dedicated weather/UV page and independent feed state
+src/WeatherDashboard.css       Scoped weather-page layout and finite motion
+src/components/Forecast.tsx    Shared hourly chart and three-day forecast
+src/components/WeatherUVPanel.tsx Observed UV, model UV chart and daylight panel
+src/styles/tokens.css          Collection colour, surface and motion tokens
 src/components/CommutePanel.tsx Stop search, local favourites and departure board
 src/components/EpaPanel.tsx     Nearby station observations and unavailable state
 src/lib/                       Feed validation, location matching and freshness
