@@ -1,0 +1,82 @@
+/* The homepage previews each destination's identity using the same palette
+   tokens as the destination itself. Data categories keep their own colours.
+   These overrides are deliberately excluded from Original light. */
+html[data-page="home"][data-theme="navy"] [data-entry] {
+  --ink: var(--palette-ink);
+  --ink-soft: var(--palette-ink-soft);
+  --muted: var(--palette-secondary);
+  --accent: var(--palette-accent);
+  --accent-dark: var(--palette-action);
+  --accent-soft: var(--palette-selection);
+  --lavender: var(--palette-subtle);
+  --lavender-ink: var(--palette-action);
+  --peach: var(--palette-subtle);
+  --surface: var(--palette-surface);
+  --border: var(--palette-line);
+}
+
+/* Strong colour identifies a quick link; text and source time remain primary. */
+html[data-page="home"][data-theme="navy"] .summary-tile[data-entry] {
+  --ink: var(--palette-text);
+  --ink-soft: var(--palette-muted);
+  --muted: var(--palette-muted);
+  background: var(--palette-panel);
+  border-color: var(--palette-border);
+  color: var(--palette-text);
+}
+html[data-page="home"][data-theme="navy"] .summary-tile[data-entry] .summary-icon {
+  background: var(--palette-hover);
+  color: var(--palette-accent);
+}
+html[data-page="home"][data-theme="navy"] .summary-tile[data-entry] .summary-arrow {
+  color: var(--palette-active-text);
+}
+html[data-page="home"][data-theme="navy"] .summary-tile[data-entry]:hover {
+  border-color: var(--palette-accent);
+}
+html[data-page="home"][data-theme="navy"] .summary-tile[data-entry]:focus-visible {
+  outline-color: var(--palette-accent);
+}
+
+/* Reading panels use the destination's pale surface and dark text roles. */
+html[data-page="home"][data-theme="navy"] .card[data-entry] .card-title > svg {
+  color: var(--palette-action);
+}
+html[data-page="home"][data-theme="navy"] .card[data-entry] .dashboard-entry-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--palette-selection-line);
+  border-radius: 10px;
+  background: var(--palette-selection);
+  color: var(--palette-action);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+html[data-page="home"][data-theme="navy"] .dashboard-entry-link > svg {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+}
+html[data-page="home"][data-theme="navy"] .card[data-entry] .dashboard-entry-link:hover {
+  background: var(--palette-accent);
+  border-color: var(--palette-accent);
+  color: var(--palette-ink);
+}
+
+/* The existing Parking feature is the same warm walnut as its destination. */
+html[data-page="home"][data-theme="navy"] .explore-card[data-entry] {
+  --ink: var(--palette-text);
+  --ink-soft: var(--palette-text);
+  --muted: var(--palette-muted);
+  --lavender-ink: var(--palette-text);
+}
+html[data-page="home"][data-theme="navy"] .explore-card .city-road {
+  background: var(--palette-hover);
+  border-color: var(--palette-border);
+}

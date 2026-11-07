@@ -340,7 +340,7 @@ export default function App() {
           )}
 
           <section className="summary-grid" aria-label="At a glance">
-            <a className="summary-tile summary-tile--weather" href="#weather" onClick={() => navigate("weather")}>
+            <a className="summary-tile summary-tile--weather" data-entry="weather" href="#weather" onClick={() => navigate("weather")}>
               <span className="summary-icon"><CloudSun size={20} /></span>
               <ArrowUpRight className="summary-arrow" size={17} aria-hidden="true" />
               <span className="summary-label">Outside right now</span>
@@ -350,7 +350,7 @@ export default function App() {
               </strong>
               <span className="summary-detail">{w ? `Model · valid ${melbourneTime(w.current.time)}${weatherState === "delayed" ? " · Delayed" : ""}` : "Weather model awaiting data"}</span>
             </a>
-            <a className="summary-tile summary-tile--uv" href="#weather" onClick={() => navigate("weather")}>
+            <a className="summary-tile summary-tile--uv" data-entry="weather" href="#weather" onClick={() => navigate("weather")}>
               <span className="summary-icon"><Sun size={20} /></span>
               <ArrowUpRight className="summary-arrow" size={17} aria-hidden="true" />
               <span className="summary-label">Observed UV</span>
@@ -360,7 +360,7 @@ export default function App() {
               </strong>
               <span className="summary-detail">{u ? `ARPANSA · ${melbourneTime(u.observedAt)}${uvState === "delayed" ? " · Delayed" : ""}` : "Melbourne station awaiting data"}</span>
             </a>
-            <a className="summary-tile summary-tile--parking" href="#parking" onClick={() => navigate("parking")}>
+            <a className="summary-tile summary-tile--parking" data-entry="parking" href="#parking" onClick={() => navigate("parking")}>
               <span className="summary-icon"><CarFront size={20} /></span>
               <ArrowUpRight className="summary-arrow" size={17} aria-hidden="true" />
               <span className="summary-label">Available parking bays</span>
@@ -370,7 +370,7 @@ export default function App() {
               </strong>
               <span className="summary-detail">{p ? `City of Melbourne · ${melbourneTime(p.observedAt)}${parkingState === "delayed" ? " · Delayed" : ""}` : "City of Melbourne sensors awaiting data"}</span>
             </a>
-            <a className="summary-tile summary-tile--air" href="#air" onClick={() => navigate("air")}>
+            <a className="summary-tile summary-tile--air" data-entry="air" href="#air" onClick={() => navigate("air")}>
               <span className="summary-icon"><Wind size={20} /></span>
               <ArrowUpRight className="summary-arrow" size={17} aria-hidden="true" />
               <span className="summary-label">Regional PM2.5 estimate</span>
@@ -395,7 +395,7 @@ export default function App() {
 
           <div className="dashboard-grid">
             <section
-              className="card weather-card"
+              className="card weather-card" data-entry="weather"
               id="weather"
               aria-labelledby="weather-title"
             >
@@ -484,7 +484,7 @@ export default function App() {
                 <ExternalLink href="https://open-meteo.com/">
                   Open-Meteo
                 </ExternalLink>
-                <a href={`${import.meta.env.BASE_URL}weather.html`}>
+                <a className="dashboard-entry-link" href={`${import.meta.env.BASE_URL}weather.html`}>
                   Open weather & UV dashboard<ArrowUpRight size={14} aria-hidden="true" />
                 </a>
                 {weather.data && (
@@ -505,7 +505,7 @@ export default function App() {
               )}
             </section>
 
-            <section className="card uv-card" aria-labelledby="uv-title">
+            <section className="card uv-card" data-entry="weather" aria-labelledby="uv-title">
               <div className="card-heading">
                 <div className="card-title">
                   <Sun size={19} />
@@ -601,7 +601,7 @@ export default function App() {
             </section>
 
             <section
-              className="card transport-card"
+              className="card transport-card" data-entry="transport"
               id="transport"
               aria-labelledby="transport-title"
             >
@@ -675,7 +675,7 @@ export default function App() {
                 ))}
               </div>
               <div className="transport-bottom">
-                <a href={`${import.meta.env.BASE_URL}transport.html`}>
+                <a className="dashboard-entry-link" href={`${import.meta.env.BASE_URL}transport.html`}>
                   Open PTV transport dashboard<ArrowUpRight size={14} aria-hidden="true" />
                 </a>
                 <ExternalLink href={roadTrafficLink.url}>
@@ -685,7 +685,7 @@ export default function App() {
             </section>
 
             <section
-              className="card parking-card"
+              className="card parking-card" data-entry="parking"
               id="parking"
               aria-labelledby="parking-title"
             >
@@ -797,7 +797,7 @@ export default function App() {
                   onRetry={refresh}
                 />
               )}
-              <ExternalLink href={PARKING_URL} className="parking-cta">
+              <ExternalLink href={PARKING_URL} className="parking-cta dashboard-entry-link">
                 <span>
                   <MapPin size={16} />
                   Open the full parking map
@@ -824,7 +824,7 @@ export default function App() {
             </section>
 
             <section
-              className="card air-card"
+              className="card air-card" data-entry="air"
               id="air"
               aria-labelledby="air-title"
             >
@@ -891,7 +891,7 @@ export default function App() {
                 <ExternalLink href={AIR_SOURCE_URL}>
                   CAMS · Open-Meteo
                 </ExternalLink>
-                <a href={`${import.meta.env.BASE_URL}air.html`}>
+                <a className="dashboard-entry-link" href={`${import.meta.env.BASE_URL}air.html`}>
                   Open EPA air quality dashboard<ArrowUpRight size={14} aria-hidden="true" />
                 </a>
                 {air.data && (
@@ -912,11 +912,7 @@ export default function App() {
               )}
             </section>
 
-            <section id="collection" className="explore-card" aria-labelledby="explore-title">
-              <div className="explore-topline">
-                <span>THE DASHBOARD COLLECTION</span>
-                <span>01 / MORE TO COME</span>
-              </div>
+            <section id="collection" className="explore-card" data-entry="parking" aria-labelledby="explore-title">
               <div className="mini-city" aria-hidden="true">
                 <div className="city-road" />
                 <div className="city-building building-1" />
@@ -927,10 +923,6 @@ export default function App() {
                 <span className="city-tree tree-2" />
               </div>
               <div className="explore-copy">
-                <span className="collection-tag">
-                  <CarFront size={13} />
-                  PARKING EXPLORER
-                </span>
                 <h2 id="explore-title">
                   Find your next
                   <br />

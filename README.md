@@ -8,7 +8,7 @@ GitHub Pages serves the revision from the latest successful deployment. **EPA st
 
 ## Dashboard collection style
 
-The homepage uses a shared white-and-orange visual system with lavender, mint and peach summary cards. It includes an interactive hourly weather chart, keyboard and touch forecast selection, weather illustrations, finite entrance animations and feedback when readings change. Reduced-motion preferences disable animation. Summary cards preserve the same source times and expiry rules as their detailed panels.
+The homepage uses the collection's navy frame with destination-themed summary cards and dashboard entry surfaces: sunset for weather/UV, walnut/amber for parking, forest/mint for air quality, and indigo/iris for transport. It includes an interactive hourly weather chart, keyboard and touch forecast selection, weather illustrations, finite entrance animations and feedback when readings change. Reduced-motion preferences disable animation. Summary cards preserve the same source times and expiry rules as their detailed panels.
 
 The [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html) gives weather its own destination, linked from the homepage weather card. It shares the suburb preference, forecast interaction, weather artwork and reading-change animation with the homepage. Its dedicated layout adds current-weather metric tiles, an hourly model UV chart and a sunrise/sunset panel. Observed station UV stays separate from forecast UV, and expired readings remain hidden.
 
@@ -21,6 +21,8 @@ The reusable theme is in `src/styles/tokens.css`; components and interaction rul
 Each destination has its own featured palette: **Home — Navy & coral**, **Parking — Walnut & amber**, **Weather & UV — Sunset glow**, **Air quality — Forest & mint**, and **Transport — Indigo & iris**. Use **Colour theme** in the sidebar/mobile menu to restore Original light. That featured/light preference persists across the five dashboards; each page retains its own identity when featured colours are enabled.
 
 Shared palette roles are in `src/styles/palette-tokens.css` and the navigation frame is in `src/styles/navy-theme.css`. Each HTML entry declares `data-page` and applies the saved preference before paint. UV risk, EPA categories and parking availability retain their semantic colours and text labels.
+
+Homepage `data-entry` attributes reuse those same destination palette roles. The featured treatment follows the shared Colour theme preference; Original light remains available. Summary cards keep their existing page-section anchors, dashboard links keep their destinations, and provider links retain their source attribution and opening behaviour.
 
 Every dashboard has the same series navigation: Home, Parking, Weather & UV, Air quality and Transport. Desktop sidebars separate those page destinations from the current page's section anchors. On mobile, a fixed five-item bottom bar provides direct switching, with space for the device safe area and the page footer. The bottom bar hides while the navigation drawer is open; the drawer traps keyboard focus, closes with Escape and restores focus to its menu button. The current dashboard is identified with `aria-current="page"`.
 

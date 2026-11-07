@@ -5,6 +5,7 @@ import "./styles.css";
 
 import "./styles/navy-theme.css";
 import "./styles/navy-pages.css";
+import "./styles/homepage-entries.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
