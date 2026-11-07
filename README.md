@@ -20,7 +20,9 @@ The initial directory contains 2,165 boarding-point records, including individua
 
 ## EPA observations and transport status
 
-The transit board supports route/direction selection, separate direction favourites, up to five departures, live estimates versus scheduled times, cancellations and service updates. Direction choices come from an authorised PTV response; without that response, a local favourite keeps the stop with all directions.
+The transit board supports route/direction selection, separate direction favourites, up to five departures, live estimates versus scheduled times, metropolitan-train cancellations and service updates. PTV does not promise tram cancellation status. Direction choices come from an authorised PTV response; without that response, a local favourite keeps the stop with all directions.
+
+A separate transport-only Worker is prepared for public access: it exposes only `/api/transit/departures`, including associated service updates, and accepts PTV runtime secrets. `VITE_TRANSIT_API_URL` independently selects its public origin. Requests send no credentials, refresh every 30 seconds and hide results after two minutes without a successful lookup. The endpoint is not yet activated: PTV credentials and authorised live validation are still required. The existing EPA backend remains private.
 
 The EPA panel supports the nearest eligible monitoring station within 100 km of the chosen suburb, station distance, the provider's category, available hourly PM2.5/PM10 readings and each reading's timestamp. Model estimates remain a separate source. Missing or stale observations never become a “Good” category.
 
@@ -64,6 +66,7 @@ src/lib/                       Feed validation, location matching and freshness
 shared/                        Explicit frontend/backend data contracts
 server/                        Canonical PTV, EPA and API gateway source
 scripts/build-api.mjs           Build the API worker from this repository
+scripts/build-transit-api.mjs   Build the separate transport-only API worker
 scripts/update-transit-stops.py Collect the public GTFS stop directory
 public/data/transport-stops.json Published train/tram boarding-point directory
 public/data/zone-crosswalk.json Parking zone-to-street mapping

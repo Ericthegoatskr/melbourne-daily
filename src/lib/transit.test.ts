@@ -56,6 +56,7 @@ afterEach(() => {
 
 describe("live transport client", () => {
   it("requires a configured API and never attempts authenticated calls from a static host", async () => {
+    vi.stubEnv("VITE_TRANSIT_API_URL", "");
     vi.stubEnv("VITE_DATA_API_URL", "");
     const fetch = vi.fn();
     vi.stubGlobal("fetch", fetch);
@@ -66,6 +67,62 @@ describe("live transport client", () => {
     expect(transitApiConfigured("https://secret@example.com")).toBe(false);
     expect(transitApiConfigured("https://example.com?key=secret")).toBe(false);
   });
+
+  it.each([
+    [
+      "https://transit.example.test",
+      "https://shared.example.test",
+      "https://transit.example.test",
+    ],
+    ["https://transit.example.test", "", "https://transit.example.test"],
+    ["", "https://shared.example.test", "https://shared.example.test"],
+  ])(
+    "uses the dedicated transit origin %s before the shared origin %s",
+    async (transit, shared, expected) => {
+      vi.stubEnv("VITE_TRANSIT_API_URL", transit);
+      vi.stubEnv("VITE_DATA_API_URL", shared);
+      vi.stubEnv("VITE_EPA_DATA_URL", "https://pages.example.test/data/epa.json");
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+      const fetch = vi
+        .fn()
+        .mockResolvedValue(new Response(JSON.stringify(fixture())));
+      vi.stubGlobal("fetch", fetch);
+
+      expect(transitApiConfigured()).toBe(true);
+      await fetchTransitBoard({ stop });
+      const [url, options] = fetch.mock.calls[0];
+      expect(new URL(url).origin).toBe(expected);
+      expect(new URL(url).pathname).toBe("/api/transit/departures");
+      expect(options).toEqual({
+        signal: expect.any(AbortSignal),
+        credentials: "omit",
+        cache: "no-store",
+      });
+    },
+  );
+
+  it.each([
+    "https://user:synthetic-secret@transit.example.test",
+    "https://transit.example.test?token=synthetic-secret",
+    "https://transit.example.test#synthetic-secret",
+    "http://transit.example.test",
+    "not-a-url",
+  ])(
+    "refuses an invalid dedicated origin without falling back: %s",
+    async (transit) => {
+      vi.stubEnv("VITE_TRANSIT_API_URL", transit);
+      vi.stubEnv("VITE_DATA_API_URL", "https://shared.example.test");
+      const fetch = vi.fn();
+      vi.stubGlobal("fetch", fetch);
+
+      expect(transitApiConfigured()).toBe(false);
+      await expect(fetchTransitBoard({ stop })).rejects.toMatchObject({
+        code: "not_configured",
+      });
+      expect(fetch).not.toHaveBeenCalled();
+    },
+  );
 
   it("expires old lookup results independently of future departure timestamps", () => {
     const data = fixture();

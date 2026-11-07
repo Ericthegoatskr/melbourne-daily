@@ -209,13 +209,19 @@ export function parseTransitBoard(
   return result;
 }
 
-export const transitApiConfigured = apiConfigured;
+function transitApiBase(): string | undefined {
+  return import.meta.env.VITE_TRANSIT_API_URL || import.meta.env.VITE_DATA_API_URL;
+}
+
+export function transitApiConfigured(base = transitApiBase()): boolean {
+  return apiConfigured(base);
+}
 
 async function request(
   path: string,
   query: URLSearchParams,
   signal?: AbortSignal,
-  base = import.meta.env.VITE_DATA_API_URL,
+  base = transitApiBase(),
 ): Promise<unknown> {
   if (!transitApiConfigured(base)) {
     throw new TransitApiError(
@@ -231,7 +237,7 @@ async function request(
   try {
     const response = await fetch(
       `${apiUrl(`/api/transit/${path}`, base)}?${query}`,
-      { signal: controller.signal },
+      { signal: controller.signal, credentials: "omit", cache: "no-store" },
     );
     if (!response.ok) {
       if (response.status === 503)

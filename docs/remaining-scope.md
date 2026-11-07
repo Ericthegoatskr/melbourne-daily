@@ -24,10 +24,12 @@ Pinning an official shortcut is not the same feature as saving a stop and direct
 - [x] Preserve platforms, modes and identifier schemes separately; route/direction selection is implemented for an authorised PTV board response.
 - [x] Save/remove local favourites and restore them on revisit. Direction-specific selections are tested and become available with the PTV response.
 - [x] Implement up to five departures for the selected stop/direction, including route and destination.
-- [x] Distinguish live predictions, scheduled times and cancellations. A missing prediction is not treated as on time.
+- [x] Distinguish live predictions, scheduled times and metropolitan-train cancellations. A missing prediction is not treated as on time; tram cancellation coverage is not promised by PTV.
 - [x] Implement relevant service disruptions, validity filtering and official source links where supplied.
 - [x] Preserve lookup/schedule/estimate times and handle stale boards, no upcoming service, invalid saved stops, rate limits and upstream failures.
 - [x] Keep provider keys server-side, validate input, cache requests and apply per-worker burst limits. Distributed quota enforcement is not claimed.
+- [x] Prepare a separately deployable transport-only read endpoint and independent `VITE_TRANSIT_API_URL` configuration. Browser requests omit credentials; the existing EPA backend stays private.
+- [ ] Configure PTV secrets on the dedicated host, verify its authorised public access and set the frontend's public transport URL. The prepared bundle alone does not activate the feature.
 - [ ] Verify an actual authorised upstream response, the deployed backend response and the rendered production feature. A fixture-only adapter or a “key not configured” card does not satisfy this gate.
 
 The [DTP realtime collection](https://opendata.transport.vic.gov.au/dataset/gtfs-realtime) and [PTV Timetable API](https://www.vic.gov.au/public-transport-timetable-api) are separate integration paths; their credentials and identifier spaces must not be assumed interchangeable. Use whichever authorised path supplies the required behavior reliably. If using GTFS-RT, join the correct static schedule and service date, including trips after midnight and times beyond 24:00.

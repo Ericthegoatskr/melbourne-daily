@@ -156,6 +156,8 @@ async function fetchPTV(
     const response = await fetch(url, {
       signal: controller.signal,
       headers: { Accept: "application/json" },
+      // The signed URL is a credential: never send it to a redirect target.
+      redirect: "manual",
     });
     if (!response.ok)
       throw new TransitServiceError(
@@ -263,25 +265,43 @@ function safeOfficialUrl(raw: unknown): string | null {
     return null;
   }
 }
-function parseDisruption(raw: unknown): TransitDisruption {
+function parseDisruption(raw: unknown): {
+  disruption: TransitDisruption;
+  affectedRoutes: { routeId: number; directionId: number | null }[];
+} {
   const data = object(raw);
+  const affectedRoutes =
+    data.routes == null
+      ? []
+      : array(data.routes).map((value) => {
+          const route = object(value);
+          const direction =
+            route.direction == null ? null : object(route.direction);
+          return {
+            routeId: integer(route.route_id),
+            directionId:
+              direction?.direction_id == null
+                ? null
+                : integer(direction.direction_id),
+          };
+        });
   return {
-    id: integer(data.disruption_id),
-    title: text(data.title),
-    description: plainText(data.description),
-    url: safeOfficialUrl(data.url),
-    status: text(data.disruption_status, true),
-    updatedAt: time(data.last_updated, true),
-    startsAt: time(data.from_date, true),
-    endsAt: time(data.to_date, true),
-    routeIds:
-      data.routes == null
-        ? []
-        : array(data.routes).map((value) => integer(object(value).route_id)),
-    stopIds:
-      data.stops == null
-        ? []
-        : array(data.stops).map((value) => integer(object(value).stop_id)),
+    affectedRoutes,
+    disruption: {
+      id: integer(data.disruption_id),
+      title: text(data.title),
+      description: plainText(data.description),
+      url: safeOfficialUrl(data.url),
+      status: text(data.disruption_status, true),
+      updatedAt: time(data.last_updated, true),
+      startsAt: time(data.from_date, true),
+      endsAt: time(data.to_date, true),
+      routeIds: affectedRoutes.map((route) => route.routeId),
+      stopIds:
+        data.stops == null
+          ? []
+          : array(data.stops).map((value) => integer(object(value).stop_id)),
+    },
   };
 }
 
@@ -398,10 +418,16 @@ export function parsePTVDepartures(
       Date.parse(a.estimatedAt ?? a.scheduledAt) -
       Date.parse(b.estimatedAt ?? b.scheduledAt),
   );
+  const loneExpandedStop =
+    !returnedStopIds.size && Object.values(expandedStops).length === 1
+      ? object(Object.values(expandedStops)[0])
+      : null;
+  if (loneExpandedStop && loneExpandedStop.route_type !== expectedRouteType)
+    throw badData();
   const upstreamStopId = returnedStopIds.size
     ? [...returnedStopIds][0]
-    : Object.values(expandedStops).length === 1
-      ? integer(object(Object.values(expandedStops)[0]).stop_id)
+    : loneExpandedStop
+      ? integer(loneExpandedStop.stop_id)
       : null;
   if (
     idScheme === "ptv" &&
@@ -414,13 +440,26 @@ export function parsePTVDepartures(
   if (selection.routeId !== undefined) relevantRoutes.add(selection.routeId);
   const disruptions = Object.values(object(payload.disruptions))
     .map(parseDisruption)
-    .filter((item) => item.endsAt === null || Date.parse(item.endsAt) >= now)
     .filter(
-      (item) =>
-        relevantIds.has(item.id) ||
-        (upstreamStopId !== null && item.stopIds.includes(upstreamStopId)) ||
-        item.routeIds.some((route) => relevantRoutes.has(route)),
-    );
+      ({ disruption }) =>
+        disruption.endsAt === null || Date.parse(disruption.endsAt) >= now,
+    )
+    .filter(
+      ({ disruption, affectedRoutes }) =>
+        // Direct departure/stop associations remain authoritative even when
+        // an alert also lists a route restricted to another direction.
+        relevantIds.has(disruption.id) ||
+        (upstreamStopId !== null &&
+          disruption.stopIds.includes(upstreamStopId)) ||
+        affectedRoutes.some(
+          (route) =>
+            relevantRoutes.has(route.routeId) &&
+            (selection.directionId === undefined ||
+              route.directionId === null ||
+              route.directionId === selection.directionId),
+        ),
+    )
+    .map(({ disruption }) => disruption);
   return {
     stopId: selection.stopId,
     idScheme,

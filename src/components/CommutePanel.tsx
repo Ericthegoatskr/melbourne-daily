@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import {
   fetchTransitBoard,
+  transitApiConfigured,
   parseTransitStop,
   upcomingDepartures,
   TRANSIT_REFRESH_MS,
@@ -27,7 +28,6 @@ import {
   findStops,
   type StopDirectory,
 } from "../lib/stopDirectory";
-import { apiConfigured } from "../lib/api";
 import {
   useResource,
   readPreference,
@@ -98,7 +98,7 @@ export default function CommutePanel({
   const [directoryLoading, setDirectoryLoading] = useState(true);
   const [localRevision, setLocalRevision] = useState(0);
   const searchInput = useRef<HTMLInputElement>(null);
-  const configured = apiConfigured();
+  const configured = transitApiConfigured();
   useEffect(() => {
     const controller = new AbortController();
     let disposed = false;

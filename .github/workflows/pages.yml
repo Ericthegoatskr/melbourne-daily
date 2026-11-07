@@ -39,8 +39,10 @@ jobs:
       - run: npm run build
         env:
           VITE_DATA_API_URL: ${{ vars.VITE_DATA_API_URL }}
+          VITE_TRANSIT_API_URL: ${{ vars.VITE_TRANSIT_API_URL }}
           VITE_EPA_DATA_URL: ${{ vars.VITE_EPA_DATA_URL }}
       - run: npm run build:api
+      - run: npm run build:transit-api
       - name: Configure Pages
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5

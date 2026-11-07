@@ -9,19 +9,15 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CommutePanel from "./CommutePanel";
-import { apiConfigured } from "../lib/api";
 import { fetchStopDirectory, type StopDirectory } from "../lib/stopDirectory";
 import {
   fetchTransitBoard,
+  transitApiConfigured,
   type TransitBoard,
   type TransitSelection,
   type TransitStop,
 } from "../lib/transit";
 
-vi.mock("../lib/api", async (original) => ({
-  ...(await original<typeof import("../lib/api")>()),
-  apiConfigured: vi.fn(),
-}));
 vi.mock("../lib/stopDirectory", async (original) => ({
   ...(await original<typeof import("../lib/stopDirectory")>()),
   fetchStopDirectory: vi.fn(),
@@ -29,6 +25,7 @@ vi.mock("../lib/stopDirectory", async (original) => ({
 vi.mock("../lib/transit", async (original) => ({
   ...(await original<typeof import("../lib/transit")>()),
   fetchTransitBoard: vi.fn(),
+  transitApiConfigured: vi.fn(),
 }));
 
 const NOW = Date.parse("2026-11-07T00:00:00Z");
@@ -163,7 +160,7 @@ beforeEach(() => {
   vi.setSystemTime(NOW);
   vi.clearAllMocks();
   localStorage.clear();
-  vi.mocked(apiConfigured).mockReturnValue(false);
+  vi.mocked(transitApiConfigured).mockReturnValue(false);
   vi.mocked(fetchStopDirectory).mockResolvedValue(directory);
   vi.mocked(fetchTransitBoard).mockImplementation(async (selection) =>
     boardFor(selection),
@@ -269,7 +266,7 @@ describe("commute search, saved selections and honest departures", () => {
   });
 
   it("saves different route/direction combinations independently and restores the chosen direction", async () => {
-    vi.mocked(apiConfigured).mockReturnValue(true);
+    vi.mocked(transitApiConfigured).mockReturnValue(true);
     const view = await openPanel();
     await chooseStation();
     await act(async () => {
@@ -331,7 +328,7 @@ describe("commute search, saved selections and honest departures", () => {
         { stop: station, directionId: 0.5 },
       ]),
     );
-    vi.mocked(apiConfigured).mockReturnValue(true);
+    vi.mocked(transitApiConfigured).mockReturnValue(true);
     await openPanel();
     expect(
       screen.getByRole("searchbox", { name: "Find a station or tram stop" }),
@@ -342,7 +339,7 @@ describe("commute search, saved selections and honest departures", () => {
   });
 
   it("keeps equal numeric GTFS and PTV stop identifiers as distinct favourites", async () => {
-    vi.mocked(apiConfigured).mockReturnValue(true);
+    vi.mocked(transitApiConfigured).mockReturnValue(true);
     const ptv: TransitSelection = {
       stop: { ...station, idScheme: "ptv", name: "PTV station record" },
     };
@@ -368,7 +365,7 @@ describe("commute search, saved selections and honest departures", () => {
   });
 
   it("distinguishes estimates, timetable-only services, cancellations and operator alerts", async () => {
-    vi.mocked(apiConfigured).mockReturnValue(true);
+    vi.mocked(transitApiConfigured).mockReturnValue(true);
     await openPanel();
     await chooseStation();
     expect(screen.getByText("5 min")).toBeTruthy();
@@ -407,7 +404,7 @@ describe("commute search, saved selections and honest departures", () => {
   });
 
   it("hides the departure board once its lookup is older than 120 seconds, even without another request", async () => {
-    vi.mocked(apiConfigured).mockReturnValue(true);
+    vi.mocked(transitApiConfigured).mockReturnValue(true);
     const view = await openPanel();
     await chooseStation();
     expect(screen.getByText("Frankston")).toBeTruthy();
@@ -428,7 +425,7 @@ describe("commute search, saved selections and honest departures", () => {
     vi.mocked(fetchStopDirectory).mockRejectedValueOnce(
       new Error("Network unavailable"),
     );
-    vi.mocked(apiConfigured).mockReturnValue(true);
+    vi.mocked(transitApiConfigured).mockReturnValue(true);
     vi.mocked(fetchTransitBoard).mockImplementation(async (selection) => ({
       ...boardFor(selection),
       departures: [],

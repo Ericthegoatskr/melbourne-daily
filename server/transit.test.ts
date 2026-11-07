@@ -173,6 +173,27 @@ describe("PTV protocol and credential isolation", () => {
     expect(error.message).not.toContain("signature");
   });
 
+  it.each([301, 302, 303, 307, 308])(
+    "does not forward signed requests through a %s redirect",
+    async (status) => {
+      const fetch = vi.fn().mockResolvedValue(
+        new Response("Redirect response with private provider details", {
+          status,
+          headers: { Location: "https://example.com/collect?signature=private" },
+        }),
+      );
+      vi.stubGlobal("fetch", fetch);
+
+      const error = await getDepartures(selection, env).catch((value) => value);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch.mock.calls[0][1]).toMatchObject({ redirect: "manual" });
+      expect(error).toMatchObject({ code: "upstream" });
+      expect(error.message).not.toMatch(/signature|private|example\.com/);
+      expect(error.message).not.toContain(env.PTV_API_KEY);
+    },
+  );
+
   it("bounds untrusted search and stop identifiers before network requests", async () => {
     const fetch = vi.fn();
     vi.stubGlobal("fetch", fetch);
@@ -251,6 +272,41 @@ describe("PTV payload normalization", () => {
     ).toThrow(/incomplete/);
   });
 
+  it("associates empty GTFS boards with the returned PTV stop, never the requested GTFS ID", () => {
+    const payload = fixture();
+    payload.departures = [];
+    payload.disruptions["9"].routes = [];
+    Object.assign(payload.disruptions["9"], { stops: [{ stop_id: 1071 }] });
+    const gtfsSelection = {
+      ...selection,
+      stopId: 19854,
+      idScheme: "gtfs" as const,
+    };
+
+    const board = parsePTVDepartures(payload, gtfsSelection, checkedAt);
+    expect(board.upstreamStopId).toBe(1071);
+    expect(board.departures).toEqual([]);
+    expect(board.disruptions.map((item) => item.id)).toEqual([9]);
+
+    Object.assign(payload.disruptions["9"], { stops: [{ stop_id: 19854 }] });
+    expect(
+      parsePTVDepartures(payload, gtfsSelection, checkedAt).disruptions,
+    ).toEqual([]);
+  });
+
+  it("rejects an empty board whose expanded stop belongs to another mode", () => {
+    const payload = fixture();
+    payload.departures = [];
+    payload.stops["1071"].route_type = 1;
+    expect(() =>
+      parsePTVDepartures(
+        payload,
+        { ...selection, stopId: 19854, idScheme: "gtfs" },
+        checkedAt,
+      ),
+    ).toThrow(/incomplete/);
+  });
+
   it("filters to the saved direction and treats absent predictions as scheduled, never on time", () => {
     const payload = fixture();
     payload.departures[0].direction_id = 7;
@@ -264,6 +320,84 @@ describe("PTV payload normalization", () => {
       "cancelled",
       "scheduled",
     ]);
+  });
+
+  it.each([
+    ["opposite direction", { direction_id: 7, route_direction_id: 5 }, 0],
+    ["matching direction", { direction_id: 5, route_direction_id: 99 }, 1],
+    ["missing direction", undefined, 1],
+    ["null direction", null, 1],
+    ["missing direction identifier", { route_direction_id: 7 }, 1],
+    ["null direction identifier", { direction_id: null }, 1],
+  ] as const)("respects %s for route-only alerts", (_label, direction, expected) => {
+    const payload = fixture();
+    payload.departures[0].disruption_ids = [];
+    Object.assign(payload.disruptions["9"].routes[0], { direction });
+
+    const board = parsePTVDepartures(
+      payload,
+      { ...selection, routeId: 12, directionId: 5 },
+      checkedAt,
+    );
+
+    expect(board.disruptions).toHaveLength(expected);
+    if (expected) {
+      expect(board.disruptions[0].routeIds).toEqual([12]);
+      expect(board.disruptions[0]).not.toHaveProperty("affectedRoutes");
+    }
+  });
+
+  it.each(["departure", "stop"])(
+    "preserves an explicit %s alert despite an opposite-direction route association",
+    (association) => {
+      const payload = fixture();
+      Object.assign(payload.disruptions["9"].routes[0], {
+        direction: { direction_id: 7 },
+      });
+      if (association === "stop") {
+        payload.departures[0].disruption_ids = [];
+        Object.assign(payload.disruptions["9"], { stops: [{ stop_id: 1071 }] });
+      }
+
+      const board = parsePTVDepartures(
+        payload,
+        { ...selection, routeId: 12, directionId: 5 },
+        checkedAt,
+      );
+
+      expect(board.disruptions.map((item) => item.id)).toEqual([9]);
+    },
+  );
+
+  it("matches alert route and direction together and keeps all directions when none is selected", () => {
+    const payload = fixture();
+    payload.departures[0].disruption_ids = [];
+    Object.assign(payload.disruptions["9"], {
+      routes: [
+        { route_id: 12, direction: { direction_id: 7 } },
+        { route_id: 13, direction: { direction_id: 5 } },
+      ],
+    });
+
+    expect(
+      parsePTVDepartures(payload, selection, checkedAt).disruptions,
+    ).toHaveLength(1);
+    expect(
+      parsePTVDepartures(
+        payload,
+        { ...selection, routeId: 12, directionId: 5 },
+        checkedAt,
+      ).disruptions,
+    ).toEqual([]);
+
+    Object.assign(payload.disruptions["9"].routes[1], { route_id: 12 });
+    expect(
+      parsePTVDepartures(
+        payload,
+        { ...selection, routeId: 12, directionId: 5 },
+        checkedAt,
+      ).disruptions,
+    ).toHaveLength(1);
   });
 
   it("expires past rows and closed alerts and rejects duplicate departure identities", () => {
