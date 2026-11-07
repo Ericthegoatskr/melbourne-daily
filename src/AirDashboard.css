@@ -1,0 +1,155 @@
+/* Air-quality destination: collection foundations, independently scoped layout. */
+.air-dashboard .main-shell { min-width: 0; }
+.air-dashboard main { max-width: 1560px; padding-bottom: 0; }
+.air-dashboard .intro { align-items: flex-end; }
+.air-dashboard .intro h1 { max-width: 620px; }
+.air-dashboard .intro p { max-width: 650px; line-height: 1.8; }
+.air-dashboard .topbar-left, .air-dashboard .topbar-right { min-width: 0; }
+.air-dashboard .location-picker, .air-dashboard .location-picker select { min-width: 0; }
+
+.aq-status-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
+.aq-status-pill { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 10px; min-width: 0; min-height: 49px; padding: 12px 16px; border: 1px solid #e7e1ed; border-radius: 13px; background: #ffffffad; color: var(--muted); font-size: 11px; }
+.aq-status-pill > svg { color: var(--accent-dark); width: 16px; height: 16px; }
+.aq-status-pill:nth-child(2) > svg { color: var(--lavender-ink); }
+.aq-status-pill > strong { color: var(--ink-soft); font-weight: 550; }
+.aq-status-pill > span { margin-left: auto; }
+.aq-selection-notice { margin: -5px 0 20px; padding: 12px 15px; border: 1px solid #ead9b9; border-radius: 12px; background: #fff7e8; color: #846025; font-size: 12px; line-height: 1.8; }
+
+.aq-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+.air-dashboard .aq-grid > .card { min-width: 0; animation: aq-surface-enter var(--duration-reveal) var(--ease-out) backwards; }
+.air-dashboard .aq-grid > .aq-category-card { grid-column: span 6; }
+.air-dashboard .aq-grid > .aq-pollutant-card { grid-column: span 3; }
+.air-dashboard .aq-grid > .aq-stations-card { grid-column: span 8; }
+.air-dashboard .aq-grid > .aq-regional-card { grid-column: span 4; }
+.air-dashboard .aq-grid > .card:nth-child(2) { animation-delay: 65ms; }
+.air-dashboard .aq-grid > .card:nth-child(3) { animation-delay: 125ms; }
+.air-dashboard .aq-grid > .card:nth-child(4) { animation-delay: 180ms; }
+.air-dashboard .aq-grid > .card:nth-child(5) { animation-delay: 220ms; }
+.air-dashboard .aq-grid .card-heading { margin-bottom: 10px; }
+.air-dashboard .aq-grid .card-title h2 { font-size: 16px; }
+.air-dashboard .aq-grid .source-time { flex-wrap: wrap; white-space: normal; line-height: 1.75; }
+.air-dashboard .aq-grid .card-footer { gap: 8px 14px; }
+.air-dashboard .aq-grid .refresh-warning { line-height: 1.8; }
+
+.air-dashboard .card.aq-stations-card { padding-bottom: 19px; }
+.aq-station-controls { display: flex; align-items: stretch; gap: 10px; margin: 1px 0 15px; }
+.aq-station-search { position: relative; display: flex; align-items: center; flex: 1; min-width: 0; }
+.aq-station-search > svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #928797; width: 17px; height: 17px; pointer-events: none; }
+.aq-station-search input { display: block; width: 100%; min-width: 0; min-height: 43px; padding: 11px 12px 11px 37px; background: #fbfafc; border: 1px solid var(--border); border-radius: 11px; color: var(--ink); font-size: 12px; transition: border-color 180ms, box-shadow 180ms; }
+.aq-station-search input::placeholder { color: var(--muted); }
+.aq-station-search input:focus { border-color: #d2987b; box-shadow: 0 0 0 3px #ed70430d; }
+.aq-nearest-button { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; gap: 6px; min-height: 43px; padding: 9px 12px; border: 1px solid #e1d9e7; border-radius: 10px; background: #fff; color: var(--ink-soft); font-size: 11px; font-weight: 550; transition: background 180ms, border-color 180ms, transform 180ms; }
+.aq-nearest-button > svg { width: 14px; height: 14px; }
+.aq-nearest-button:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent-dark); border-color: #edc9b6; transform: translateY(-1px); }
+.aq-nearest-button:disabled { cursor: default; }
+
+.aq-station-list { list-style: none; margin: 0; padding: 0 3px 0 0; max-height: 400px; min-width: 0; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; scrollbar-color: #d8d0e1 transparent; }
+.aq-station-list > li { min-width: 0; border-bottom: 1px solid #f0ebf4; }
+.aq-station-list > li:last-child { border-bottom: 0; }
+.aq-station-row { display: flex; align-items: center; gap: 13px; min-width: 0; min-height: 77px; width: 100%; padding: 15px 12px; text-align: left; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--ink); transition: background 180ms, border-color 180ms; }
+.aq-station-row:hover { background: #faf7fc; }
+.aq-station-row[aria-pressed="true"] { background: #fff3eb; border-color: #edcdbb; }
+.aq-station-row[aria-pressed="true"]:hover { background: #ffefe4; }
+.aq-station-row:focus-visible { outline-offset: -3px; }
+.aq-station-marker { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 31px; width: 31px; height: 31px; border: 1px solid #e5dfeb; border-radius: 10px; background: #f7f4fa; color: var(--lavender-ink); }
+.aq-station-marker > svg { width: 15px; height: 15px; }
+.aq-station-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 5px; }
+.aq-station-copy > strong { color: var(--ink); font-size: 13px; font-weight: 550; overflow-wrap: anywhere; }
+.aq-station-copy > span { color: var(--muted); font-size: 10px; line-height: 1.7; overflow-wrap: anywhere; }
+.aq-station-row-end { display: flex; align-items: center; justify-content: flex-end; gap: 9px; max-width: 44%; }
+.aq-station-row-end > svg { width: 15px; height: 15px; color: #9c8eab; }
+.aq-station-row-end > .badge { text-align: left; white-space: normal; line-height: 1.45; }
+.aq-station-row-end > .badge > i { flex-shrink: 0; }
+.aq-station-row-end > span:not(.badge) { font-size: 10px; line-height: 1.7; color: var(--muted); }
+.aq-stations-empty { padding: 26px 18px; margin: 6px 0 12px; background: #faf8fc; border: 1px dashed #e4dcea; border-radius: 12px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.aq-coverage-note { display: flex; align-items: flex-start; gap: 8px; border-top: 1px solid var(--border); padding-top: 14px; margin: 16px 0 0; color: var(--muted); font-size: 10px; line-height: 1.8; }
+.aq-coverage-note > svg { margin-top: 1px; color: var(--lavender-ink); }
+
+.aq-sources { margin-top: 24px; padding: 25px 26px; border: 1px solid var(--border); border-radius: var(--radius); background: #ffffffb8; }
+.aq-sources-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 23px; }
+.aq-sources-heading .eyebrow { margin-bottom: 6px; font-size: 9px; }
+.aq-sources-heading h2 { font-size: 19px; font-weight: 600; letter-spacing: -.45px; }
+.aq-source-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px; }
+.aq-source-grid article { min-width: 0; }
+.aq-source-grid article + article { padding-left: 30px; border-left: 1px solid var(--border); }
+.aq-source-grid h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: var(--ink-soft); font-size: 12px; font-weight: 600; }
+.aq-source-grid h3 > svg { color: var(--accent-dark); width: 17px; height: 17px; }
+.aq-source-grid p { color: var(--muted); font-size: 11px; line-height: 1.85; }
+.aq-source-grid p + p { margin-top: 8px; }
+.aq-source-grid a { display: inline-flex; align-items: center; gap: 4px; margin: 10px 14px 0 0; color: var(--accent-dark); font-size: 11px; }
+.aq-source-grid a > svg { width: 12px; height: 12px; }
+.aq-source-grid a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.aq-source-note { margin-top: 19px; padding-top: 17px; border-top: 1px solid var(--border); color: var(--muted); font-size: 10px; line-height: 1.8; }
+.aq-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 22px; padding: 25px 0 28px; color: var(--muted); font-size: 10px; line-height: 1.8; }
+.aq-footer a { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-soft); }
+.aq-footer a > svg { width: 13px; height: 13px; }
+.aq-footer a:hover { color: var(--accent-dark); }
+
+@keyframes aq-surface-enter {
+  from { opacity: 0; transform: translateY(13px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1270px) {
+  .aq-grid { gap: 17px; }
+  .air-dashboard .aq-grid > .aq-category-card { grid-column: span 12; }
+  .air-dashboard .aq-grid > .aq-pollutant-card { grid-column: span 6; }
+  .aq-station-row { gap: 10px; padding-inline: 8px; }
+  .aq-station-row-end { gap: 6px; }
+}
+@media (max-width: 1040px) {
+  .air-dashboard .aq-grid > .aq-stations-card,
+  .air-dashboard .aq-grid > .aq-regional-card { grid-column: span 12; }
+}
+@media (max-width: 760px) {
+  .air-dashboard .topbar-left { gap: 8px; }
+  .air-dashboard .breadcrumb { font-size: 0; }
+  .air-dashboard .breadcrumb > strong { display: inline; font-size: 12px; }
+  .air-dashboard .local-clock { white-space: nowrap; }
+  .air-dashboard .intro h1 { max-width: 520px; }
+  .air-dashboard .location-picker select { font-size: 16px; }
+  .aq-status-strip { gap: 9px; margin-bottom: 19px; }
+  .aq-status-pill { align-content: start; gap: 6px; padding: 12px; font-size: 10px; }
+  .aq-status-pill > svg { width: 14px; height: 14px; }
+  .aq-status-pill > span { flex-basis: 100%; margin-left: 0; }
+  .aq-grid { gap: 17px; }
+  .aq-sources { margin-top: 20px; padding: 22px 20px; border-radius: 20px; }
+  .aq-source-grid { gap: 19px; }
+  .aq-source-grid article + article { padding-left: 19px; }
+  .aq-station-search input { font-size: 16px; }
+}
+@media (max-width: 520px) {
+  .air-dashboard .aq-grid .card-title h2 { font-size: 15px; }
+  .aq-grid { column-gap: 12px; }
+  .aq-station-controls { flex-wrap: wrap; }
+  .aq-station-search { flex-basis: 100%; }
+  .aq-nearest-button { margin-left: auto; font-size: 11px; }
+  .aq-station-row { flex-wrap: wrap; column-gap: 9px; padding: 14px 7px; }
+  .aq-station-marker { flex-basis: 28px; width: 28px; height: 28px; border-radius: 9px; }
+  .aq-station-copy > strong { font-size: 12px; }
+  .aq-station-row-end { flex-basis: 100%; max-width: none; justify-content: flex-start; padding-left: 37px; }
+  .aq-station-row-end > svg { margin-left: auto; }
+  .aq-station-row-end > .badge { font-size: 9px; }
+  .aq-source-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .aq-source-grid article + article { padding-left: 0; padding-top: 20px; border-left: 0; border-top: 1px solid var(--border); }
+  .aq-footer { padding: 22px 0 25px; }
+}
+@media (max-width: 370px) {
+  .air-dashboard .breadcrumb > strong { font-size: 11px; }
+  .air-dashboard .topbar-right { gap: 6px; }
+  .air-dashboard .local-clock { font-size: 9px; padding: 6px 7px; }
+  .air-dashboard .page-controls { gap: 7px; }
+  .air-dashboard .location-picker { padding-inline: 9px; gap: 5px; }
+  .air-dashboard .location-picker select { font-size: 14px; }
+  .air-dashboard .refresh-button { padding: 11px; }
+  .aq-status-pill { padding: 10px; gap: 5px; }
+  .aq-status-pill > strong { font-size: 9px; }
+  .aq-grid { column-gap: 10px; }
+  .air-dashboard .aq-grid > .aq-pollutant-card { padding-inline: 13px; }
+  .aq-sources { padding-inline: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .air-dashboard .aq-grid > .card { animation: none; }
+  .aq-station-row, .aq-station-search input, .aq-nearest-button { transition: none; }
+  .aq-nearest-button:hover:not(:disabled) { transform: none; }
+}

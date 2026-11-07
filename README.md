@@ -2,7 +2,7 @@
 
 An English-language dashboard for everyday Melbourne: weather, UV, parking, regional air estimates and public transport in one place.
 
-[Dashboard](https://ericthegoatskr.github.io/melbourne-daily/) · [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html) · [Full parking dashboard](https://ericthegoatskr.github.io/melbourne-parking-dashboard/) · [Data sources](docs/data-sources.md) · [Release checklist](docs/remaining-scope.md)
+[Dashboard](https://ericthegoatskr.github.io/melbourne-daily/) · [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html) · [EPA air-quality dashboard](https://ericthegoatskr.github.io/melbourne-daily/air.html) · [Full parking dashboard](https://ericthegoatskr.github.io/melbourne-parking-dashboard/) · [Data sources](docs/data-sources.md) · [Release checklist](docs/remaining-scope.md)
 
 GitHub Pages serves the revision from the latest successful deployment. **EPA station observations are live on the public homepage** through a validated JSON snapshot, with provider credentials kept out of the browser. PTV departures are implemented but remain unavailable until their credentials are configured.
 
@@ -12,7 +12,9 @@ The homepage uses a shared white-and-orange visual system with lavender, mint an
 
 The [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html) gives weather its own destination, linked from the homepage weather card. It shares the suburb preference, forecast interaction, weather artwork and reading-change animation with the homepage. Its dedicated layout adds current-weather metric tiles, an hourly model UV chart and a sunrise/sunset panel. Observed station UV stays separate from forecast UV, and expired readings remain hidden.
 
-The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). The homepage, weather page and separate Parking Dashboard use the same collection style. Weather-specific layout rules are scoped in `src/WeatherDashboard.css`.
+The [EPA air-quality dashboard](https://ericthegoatskr.github.io/melbourne-daily/air.html) is linked from the homepage air card. It adds a dedicated view of the provider's category and hourly PM2.5 / PM10 measurements, plus a searchable list of reporting stations within 100 km of the selected suburb. The nearest reporting station is selected by default; selecting another station changes the readings, and “Use nearest station” restores the default. If the selected station no longer has recent observations, the page explains the fallback to the nearest reporting station. Regional model estimates remain in a separate panel.
+
+The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). The homepage, weather page, air-quality page and separate Parking Dashboard use the same collection style. Dedicated layout rules are scoped in `src/WeatherDashboard.css` and `src/AirDashboard.css`.
 
 ## Available without credentials
 
@@ -33,7 +35,7 @@ The transit board supports route/direction selection, separate direction favouri
 
 A separate transport-only Worker is prepared for public access: it exposes only `/api/transit/departures`, including associated service updates, and accepts PTV runtime secrets. `VITE_TRANSIT_API_URL` independently selects its public origin. Requests send no credentials, refresh every 30 seconds and hide results after two minutes without a successful lookup. The endpoint is not yet activated: PTV credentials and authorised live validation are still required. The existing EPA backend remains private.
 
-The EPA panel supports the nearest eligible monitoring station within 100 km of the chosen suburb, station distance, the provider's category, available hourly PM2.5/PM10 readings and each reading's timestamp. Model estimates remain a separate source. Missing or stale observations never become a “Good” category.
+The EPA panel supports the nearest eligible monitoring station within 100 km of the chosen suburb, station distance, the provider's category, available hourly PM2.5/PM10 readings and each reading's timestamp. The dedicated air-quality page uses the same eligibility rules for its station list and manual selection. Each field becomes delayed after 90 minutes and is hidden after 180 minutes independently of the other fields. A newer complete snapshot can withdraw a previous category or measurement. Model estimates remain a separate source. Missing or stale observations never become a “Good” category, and a measured zero stays zero.
 
 The EPA subscription key stays in Sites as a Secret. GitHub Actions uses a separately authorised `EPA_BACKEND_TOKEN` Secret to collect validated station data from the owner-private backend and publish the [public JSON snapshot](https://ericthegoatskr.github.io/melbourne-daily/data/epa-observations.json). At 17:16 AEDT on 7 November 2026, anonymous page and snapshot requests succeeded, and the public browser displayed current EPA categories and pollutant readings. `VITE_EPA_DATA_URL` points to the snapshot; `VITE_DATA_API_URL` remains unset, keeping unconfigured PTV polling off. See the [backend verification record](docs/backend.md).
 
@@ -48,7 +50,7 @@ npm run dev
 
 Open the URL printed by Vite, including `/melbourne-daily/`. No environment variables are required for the public feeds and local stop directory.
 
-The dedicated weather page is at `/melbourne-daily/weather.html` on the same local server.
+The dedicated weather and air-quality pages are at `/melbourne-daily/weather.html` and `/melbourne-daily/air.html` on the same local server. EPA observations use the existing public-snapshot configuration described above; no provider key belongs in local browser configuration.
 
 ```sh
 npm run verify
@@ -59,9 +61,11 @@ Verification runs the tests, TypeScript checking and production builds. Preview 
 
 For weather-page changes, also inspect desktop and narrow mobile layouts in the production preview. Check suburb switching, hourly/daily forecast controls, keyboard hour selection, mobile navigation, independent weather/UV failures and expiry. Verify that a valid observed UV of zero remains visible, while missing hourly UV stays unavailable.
 
+For air-quality changes, check desktop and narrow mobile layouts, station search and selection, “Use nearest station”, and the fallback when a selected station stops reporting. Exercise partial missing fields, valid zero readings, delayed and expired observations, and a newer snapshot withdrawing a previously displayed category or measurement. EPA and regional-model failures must remain independent. Confirm the published frontend reads the public snapshot and contains no provider key or private-backend access token.
+
 ## GitHub Pages and directory updates
 
-The repository is `Ericthegoatskr/melbourne-daily`, with Vite's base path set to `/melbourne-daily/`. Its multi-page build emits both `index.html` and `weather.html`. Pages uses **GitHub Actions** as its build and deployment source. [pages.yml](.github/workflows/pages.yml) verifies the project before deploying `dist/`.
+The repository is `Ericthegoatskr/melbourne-daily`, with Vite's base path set to `/melbourne-daily/`. Its multi-page build emits `index.html`, `weather.html` and `air.html`. Pages uses **GitHub Actions** as its build and deployment source. [pages.yml](.github/workflows/pages.yml) verifies the project before deploying `dist/`.
 
 [refresh-transit-stops.yml](.github/workflows/refresh-transit-stops.yml) runs weekly on Monday morning in Melbourne and can be started manually from Actions. It collects and validates the Metro train/tram directory, commits only `public/data/transport-stops.json` when the source or records change, then explicitly dispatches the Pages workflow. GitHub does not trigger a push workflow from a normal `GITHUB_TOKEN` push, so this dispatch is necessary. See [GitHub's workflow-trigger documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
@@ -75,8 +79,11 @@ Live public feeds are requested in the browser. The EPA snapshot workflow is con
 src/App.tsx                    Dashboard and navigation
 src/WeatherApp.tsx             Dedicated weather/UV page and independent feed state
 src/WeatherDashboard.css       Scoped weather-page layout and finite motion
+src/AirApp.tsx                 Dedicated EPA page, station selection and model state
+src/AirDashboard.css           Scoped air-quality layout and finite motion
 src/components/Forecast.tsx    Shared hourly chart and three-day forecast
 src/components/WeatherUVPanel.tsx Observed UV, model UV chart and daylight panel
+src/components/AirReadings.tsx EPA category, pollutant and regional-model cards
 src/styles/tokens.css          Collection colour, surface and motion tokens
 src/components/CommutePanel.tsx Stop search, local favourites and departure board
 src/components/EpaPanel.tsx     Nearby station observations and unavailable state
@@ -95,7 +102,7 @@ The sibling `melbourne-daily-api` directory is generated Sites hosting scaffoldi
 
 ## Data and privacy
 
-Suburb selection, saved stops/directions and pinned shortcuts stay in this browser's local storage. There is no account system or cross-device sync. Public feeds are requested from their providers. For EPA, the browser downloads public station data and selects its nearest station locally, sending no location query or credential to the private backend. The EPA provider key stays in Sites; the separate service-access credential is stored only as an Actions Secret. A future transport connection would send selected stop queries to its backend.
+Suburb selection, saved stops/directions and pinned shortcuts stay in this browser's local storage. There is no account system or cross-device sync. Public feeds are requested from their providers. For EPA, the browser downloads public station data and handles nearest-station matching, searching and manual selection locally, sending no location query or credential to the private backend. The EPA provider key stays in Sites; the separate service-access credential is stored only as an Actions Secret. The dedicated air-quality page uses this same private-backend → Actions collector → validated public snapshot path. A future transport connection would send selected stop queries to its backend.
 
 Open-Meteo's free API is for non-commercial use. Data credit includes Open-Meteo, CAMS / Copernicus Atmosphere Monitoring Service and City of Melbourne. Transport data is licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence. **UV observations courtesy of ARPANSA.** Read the [ARPANSA UV data disclaimer](https://www.arpansa.gov.au/our-services/monitoring/ultraviolet-radiation-monitoring/ultraviolet-radation-data-information#Disclaimer).
 

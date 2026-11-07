@@ -169,13 +169,13 @@ export interface NearbyEpaStation extends EpaStation {
   distanceKm: number;
 }
 
-/** Select by distance after expiring each field separately. Call again as time passes. */
-export function nearestEpaStation(
+/** Rank reporting sites after expiring each field separately. Call again as time passes. */
+export function nearbyEpaStations(
   data: EpaObservations | undefined,
   location: Coordinates,
   now = Date.now(),
   maxDistanceKm = 100,
-): NearbyEpaStation | null {
+): NearbyEpaStation[] {
   if (
     !coordinates(location) ||
     !Number.isFinite(now) ||
@@ -183,7 +183,7 @@ export function nearestEpaStation(
     maxDistanceKm <= 0
   )
     throw new Error("Invalid EPA location or time");
-  if (!data) return null;
+  if (!data) return [];
   const candidates = data.stations
     .map((station) => ({
       ...station,
@@ -201,7 +201,17 @@ export function nearestEpaStation(
     (left, right) =>
       left.distanceKm - right.distanceKm || left.id.localeCompare(right.id),
   );
-  return candidates[0] ?? null;
+  return candidates;
+}
+
+/** The homepage and dedicated dashboard use the same reporting-site policy. */
+export function nearestEpaStation(
+  data: EpaObservations | undefined,
+  location: Coordinates,
+  now = Date.now(),
+  maxDistanceKm = 100,
+): NearbyEpaStation | null {
+  return nearbyEpaStations(data, location, now, maxDistanceKm)[0] ?? null;
 }
 
 export function epaStationUrl(stationId: string): string {

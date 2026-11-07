@@ -929,6 +929,9 @@ export default function App() {
                 <ExternalLink href={AIR_SOURCE_URL}>
                   CAMS · Open-Meteo
                 </ExternalLink>
+                <a href={`${import.meta.env.BASE_URL}air.html`}>
+                  Open EPA air quality dashboard<ArrowUpRight size={14} aria-hidden="true" />
+                </a>
                 {air.data && (
                   <SourceTime
                     label="Valid at"

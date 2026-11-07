@@ -5,7 +5,7 @@ export default defineConfig({
   base: "/melbourne-daily/",
   plugins: [react()],
   build: {
-    rolldownOptions: { input: { main: "index.html", weather: "weather.html" } },
+    rolldownOptions: { input: { main: "index.html", weather: "weather.html", air: "air.html" } },
   },
   test: { environment: "jsdom", restoreMocks: true, clearMocks: true },
 });

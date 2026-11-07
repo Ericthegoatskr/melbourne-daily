@@ -6,6 +6,7 @@ import {
   fetchEpa,
   latestEpaObservation,
   nearestEpaStation,
+  nearbyEpaStations,
   parseEpaObservations,
   type EpaObservations,
   type EpaStation,
@@ -90,6 +91,57 @@ describe("EPA observation client and nearest reporting site", () => {
     expect(selected.distanceKm).toBeGreaterThan(1);
     expect(selected.distanceKm).toBeLessThan(2);
     expect(nearestEpaStation(response([reporting]), cbd, now, 0.5)).toBeNull();
+  });
+
+  it("lists reporting sites in distance order, excluding withdrawn, expired and distant sites", () => {
+    const far = station({ id: "far", longitude: 145.4 });
+    const near = station({ id: "near", longitude: 144.98 });
+    const withdrawn = station({ id: "withdrawn", category: null, pm25: null, pm10: null });
+    const expired = station({
+      id: "expired",
+      category: { value: "Good", observedAt: iso(181) },
+      pm25: null,
+      pm10: null,
+    });
+    const outside = station({ id: "outside", latitude: -36.5 });
+    const snapshot = response([far, withdrawn, outside, near, expired]);
+    expect(nearbyEpaStations(snapshot, cbd, now).map(({ id }) => id)).toEqual(["near", "far"]);
+    expect(nearbyEpaStations(snapshot, cbd, now, 2).map(({ id }) => id)).toEqual(["near"]);
+    expect(nearestEpaStation(snapshot, cbd, now)?.id).toBe("near");
+  });
+
+  it("keeps individual zero readings without reviving stale categories or mutating the snapshot", () => {
+    const partial = station({
+      category: { value: "Good", observedAt: iso(181) },
+      pm10: { value: 8.2, unit: "µg/m³", averagingPeriod: "1h", observedAt: iso(181) },
+    });
+    const snapshot = response([partial]);
+    const original = JSON.stringify(snapshot);
+    const selected = nearbyEpaStations(snapshot, cbd, now)[0];
+    expect(selected.category).toBeNull();
+    expect(selected.pm10).toBeNull();
+    expect(selected.pm25?.value).toBe(0);
+    expect(selected.pm25?.observedAt).toBe(iso(30));
+    expect(selected).not.toBe(partial);
+    expect(JSON.stringify(snapshot)).toBe(original);
+    expect(nearbyEpaStations(snapshot, cbd, now + 151 * 60_000)).toEqual([]);
+    expect(JSON.stringify(snapshot)).toBe(original);
+  });
+
+  it("breaks equal-distance ties by station ID without reordering the source snapshot", () => {
+    const snapshot = response([station({ id: "z-site" }), station({ id: "a-site" })]);
+    expect(nearbyEpaStations(snapshot, cbd, now).map(({ id }) => id)).toEqual(["a-site", "z-site"]);
+    expect(nearestEpaStation(snapshot, cbd, now)?.id).toBe("a-site");
+    expect(snapshot.stations.map(({ id }) => id)).toEqual(["z-site", "a-site"]);
+  });
+
+  it("keeps the empty-result and invalid-input contract for station lists", () => {
+    expect(nearbyEpaStations(undefined, cbd, now)).toEqual([]);
+    expect(nearbyEpaStations(response([]), cbd, now)).toEqual([]);
+    expect(() => nearbyEpaStations(undefined, { latitude: NaN, longitude: 0 }, now)).toThrow(/Invalid EPA/);
+    expect(() => nearbyEpaStations(undefined, cbd, NaN)).toThrow(/Invalid EPA/);
+    expect(() => nearbyEpaStations(undefined, cbd, now, 0)).toThrow(/Invalid EPA/);
+    expect(() => nearbyEpaStations(undefined, cbd, now, Infinity)).toThrow(/Invalid EPA/);
   });
 
   it("does not promote missing, wrong-unit, daily-average or future data into valid readings", () => {
