@@ -328,7 +328,8 @@ describe("dashboard interactions and data honesty", () => {
         expect(link.getAttribute("rel")).toContain("noopener");
       }
     }
-    expect(screen.getByText("More official transport tools.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Open PTV transport dashboard" }).getAttribute("href"))
+      .toBe(`${import.meta.env.BASE_URL}transport.html`);
   });
 
   it("ages out UV and parking numbers even when repeated downloads have an old source timestamp", async () => {

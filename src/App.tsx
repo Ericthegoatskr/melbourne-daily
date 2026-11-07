@@ -715,7 +715,9 @@ export default function App() {
                 ))}
               </div>
               <div className="transport-bottom">
-                <span>More official transport tools.</span>
+                <a href={`${import.meta.env.BASE_URL}transport.html`}>
+                  Open PTV transport dashboard<ArrowUpRight size={14} aria-hidden="true" />
+                </a>
                 <ExternalLink href={roadTrafficLink.url}>
                   {roadTrafficLink.label}
                 </ExternalLink>

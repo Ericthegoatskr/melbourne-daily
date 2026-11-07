@@ -2,7 +2,7 @@
 
 An English-language dashboard for everyday Melbourne: weather, UV, parking, regional air estimates and public transport in one place.
 
-[Dashboard](https://ericthegoatskr.github.io/melbourne-daily/) · [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html) · [EPA air-quality dashboard](https://ericthegoatskr.github.io/melbourne-daily/air.html) · [Full parking dashboard](https://ericthegoatskr.github.io/melbourne-parking-dashboard/) · [Data sources](docs/data-sources.md) · [Release checklist](docs/remaining-scope.md)
+[Dashboard](https://ericthegoatskr.github.io/melbourne-daily/) · [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html) · [EPA air-quality dashboard](https://ericthegoatskr.github.io/melbourne-daily/air.html) · [PTV transport dashboard](https://ericthegoatskr.github.io/melbourne-daily/transport.html) · [Full parking dashboard](https://ericthegoatskr.github.io/melbourne-parking-dashboard/) · [Data sources](docs/data-sources.md) · [Release checklist](docs/remaining-scope.md)
 
 GitHub Pages serves the revision from the latest successful deployment. **EPA station observations are live on the public homepage** through a validated JSON snapshot, with provider credentials kept out of the browser. PTV departures are implemented but remain unavailable until their credentials are configured.
 
@@ -14,7 +14,9 @@ The [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/we
 
 The [EPA air-quality dashboard](https://ericthegoatskr.github.io/melbourne-daily/air.html) is linked from the homepage air card. It adds a dedicated view of the provider's category and hourly PM2.5 / PM10 measurements, plus a searchable list of reporting stations within 100 km of the selected suburb. The nearest reporting station is selected by default; selecting another station changes the readings, and “Use nearest station” restores the default. If the selected station no longer has recent observations, the page explains the fallback to the nearest reporting station. Regional model estimates remain in a separate panel.
 
-The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). The homepage, weather page, air-quality page and separate Parking Dashboard use the same collection style. Dedicated layout rules are scoped in `src/WeatherDashboard.css` and `src/AirDashboard.css`.
+The [PTV transport dashboard](https://ericthegoatskr.github.io/melbourne-daily/transport.html) shares the homepage's train/tram stop search and saved selections. Its dedicated workspace separates stop selection, departures and service updates. Stop search and local favourites work now; live departures and service updates clearly show “Awaiting activation” until the PTV connection is enabled. Official transport links remain available, and the decorative tram illustration does not represent a live service or route.
+
+The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). The homepage, weather, air-quality and transport pages and separate Parking Dashboard use the same collection style. Dedicated layout rules are scoped in `src/WeatherDashboard.css`, `src/AirDashboard.css` and `src/TransportDashboard.css`.
 
 ## Available without credentials
 
@@ -50,7 +52,7 @@ npm run dev
 
 Open the URL printed by Vite, including `/melbourne-daily/`. No environment variables are required for the public feeds and local stop directory.
 
-The dedicated weather and air-quality pages are at `/melbourne-daily/weather.html` and `/melbourne-daily/air.html` on the same local server. EPA observations use the existing public-snapshot configuration described above; no provider key belongs in local browser configuration.
+The dedicated weather, air-quality and transport pages are at `/melbourne-daily/weather.html`, `/melbourne-daily/air.html` and `/melbourne-daily/transport.html` on the same local server. EPA observations use the existing public-snapshot configuration described above; no provider key belongs in local browser configuration. The transport page needs no credentials for its stop directory or local favourites.
 
 ```sh
 npm run verify
@@ -63,9 +65,11 @@ For weather-page changes, also inspect desktop and narrow mobile layouts in the 
 
 For air-quality changes, check desktop and narrow mobile layouts, station search and selection, “Use nearest station”, and the fallback when a selected station stops reporting. Exercise partial missing fields, valid zero readings, delayed and expired observations, and a newer snapshot withdrawing a previously displayed category or measurement. EPA and regional-model failures must remain independent. Confirm the published frontend reads the public snapshot and contains no provider key or private-backend access token.
 
+For transport-page changes, check train/tram search, saved-stop restoration, directory failure/retry, mobile navigation and official links. Without a configured connection, both live panels must stay awaiting activation and make no transit API request. With local test fixtures, check selected-stop changes, live versus scheduled departures, service-update details and the two-minute expiry of both panels. Test fixtures must not be published. PTV credentials remain backend secrets; public frontend configuration contains only the transport service origin.
+
 ## GitHub Pages and directory updates
 
-The repository is `Ericthegoatskr/melbourne-daily`, with Vite's base path set to `/melbourne-daily/`. Its multi-page build emits `index.html`, `weather.html` and `air.html`. Pages uses **GitHub Actions** as its build and deployment source. [pages.yml](.github/workflows/pages.yml) verifies the project before deploying `dist/`.
+The repository is `Ericthegoatskr/melbourne-daily`, with Vite's base path set to `/melbourne-daily/`. Its multi-page build emits `index.html`, `weather.html`, `air.html` and `transport.html`. Pages uses **GitHub Actions** as its build and deployment source. [pages.yml](.github/workflows/pages.yml) verifies the project before deploying `dist/`.
 
 [refresh-transit-stops.yml](.github/workflows/refresh-transit-stops.yml) runs weekly on Monday morning in Melbourne and can be started manually from Actions. It collects and validates the Metro train/tram directory, commits only `public/data/transport-stops.json` when the source or records change, then explicitly dispatches the Pages workflow. GitHub does not trigger a push workflow from a normal `GITHUB_TOKEN` push, so this dispatch is necessary. See [GitHub's workflow-trigger documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
@@ -81,11 +85,13 @@ src/WeatherApp.tsx             Dedicated weather/UV page and independent feed st
 src/WeatherDashboard.css       Scoped weather-page layout and finite motion
 src/AirApp.tsx                 Dedicated EPA page, station selection and model state
 src/AirDashboard.css           Scoped air-quality layout and finite motion
+src/TransportApp.tsx           Dedicated transport page and pending-live status
+src/TransportDashboard.css     Scoped transport-page layout and finite motion
 src/components/Forecast.tsx    Shared hourly chart and three-day forecast
 src/components/WeatherUVPanel.tsx Observed UV, model UV chart and daylight panel
 src/components/AirReadings.tsx EPA category, pollutant and regional-model cards
 src/styles/tokens.css          Collection colour, surface and motion tokens
-src/components/CommutePanel.tsx Stop search, local favourites and departure board
+src/components/CommutePanel.tsx Shared stop search, favourites, departures and updates
 src/components/EpaPanel.tsx     Nearby station observations and unavailable state
 src/lib/                       Feed validation, location matching and freshness
 shared/                        Explicit frontend/backend data contracts
