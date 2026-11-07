@@ -1,0 +1,54 @@
+.forecast-interactive { min-width: 0; }
+.forecast-interactive .forecast-heading { flex-wrap: wrap; row-gap: 12px; }
+.forecast-hourly-view, .forecast-interactive .daily-forecast { animation: forecast-view-in 350ms ease both; }
+.forecast-chart-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 15px 0 6px; }
+.forecast-chart-legend { display: flex; flex-wrap: wrap; gap: 12px; color: #656378; font-size: 10px; }
+.forecast-chart-legend > span { display: inline-flex; align-items: center; gap: 5px; }
+.forecast-chart-legend i { width: 7px; height: 7px; border-radius: 3px; }
+.forecast-temperature-key { background: #df652d; }
+.forecast-rain-key { background: #b3a0d9; }
+.forecast-selected { display: inline-flex; align-items: center; gap: 10px; min-height: 30px; padding: 5px 10px; border: 1px solid #efebe6; border-radius: 9px; background: #fff; font-size: 11px; color: #696575; font-variant-numeric: tabular-nums; }
+.forecast-selected strong { color: #bd491d; font-size: 13px; }
+.forecast-selected > span { display: inline-flex; align-items: center; gap: 3px; color: #716196; }
+.forecast-chart { display: block; width: 100%; height: auto; overflow: visible; cursor: crosshair; touch-action: pan-y; }
+.forecast-gridline line { stroke: #ebe7e2; stroke-dasharray: 3 5; }
+.forecast-gridline text, .forecast-time-tick { font-size: 11px; font-family: inherit; fill: #77717c; }
+.forecast-rain-bar { fill: #cbb9e8; opacity: 0.5; }
+.forecast-temperature-line { fill: none; stroke: #ed793e; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: forecast-line-in 900ms cubic-bezier(.25,.75,.3,1) both; }
+.forecast-cursor { stroke: #e78c62; stroke-width: 1; stroke-dasharray: 3 4; opacity: .7; }
+.forecast-point-halo { fill: #ed793e; opacity: .12; }
+.forecast-point { fill: #ed793e; stroke: #fff; stroke-width: 2.5; }
+.forecast-scrubber { display: flex; align-items: center; gap: 14px; padding: 5px 0 11px; font-size: 10px; color: #76707a; }
+.forecast-scrubber > span { flex: 0 0 auto; }
+.forecast-scrubber input { appearance: none; -webkit-appearance: none; width: 100%; height: 24px; min-width: 0; margin: 0; background: transparent; cursor: pointer; accent-color: #ed793e; }
+.forecast-scrubber input::-webkit-slider-runnable-track { height: 3px; background: #f0dfd4; border-radius: 10px; }
+.forecast-scrubber input::-moz-range-track { height: 3px; background: #f0dfd4; border-radius: 10px; }
+.forecast-scrubber input::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; margin-top: -5px; border: 2px solid #fff; border-radius: 50%; background: #e67940; box-shadow: 0 0 0 1px #e6a27a; }
+.forecast-scrubber input::-moz-range-thumb { width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%; background: #e67940; box-shadow: 0 0 0 1px #e6a27a; }
+.forecast-scrubber input:focus-visible { outline: 2px solid #b54e27; outline-offset: 3px; border-radius: 5px; }
+.forecast-hours-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: #dfd7ce transparent; padding: 3px 0 9px; margin-bottom: 6px; }
+.forecast-hours-track { display: flex; width: max-content; gap: 5px; }
+.forecast-hour-button { display: flex; flex: 0 0 59px; width: 59px; flex-direction: column; align-items: center; gap: 8px; padding: 10px 6px; border: 1px solid transparent; border-radius: 12px; background: transparent; font: inherit; color: #6e6673; transition: background 180ms ease, border-color 180ms ease, transform 180ms ease; }
+.forecast-hour-button time { font-size: 10px; font-variant-numeric: tabular-nums; }
+.forecast-hour-button > svg { color: #b48047; }
+.forecast-hour-button strong { font-size: 15px; color: #433b43; font-weight: 600; }
+.forecast-hour-button > span { display: inline-flex; align-items: center; gap: 2px; color: #7e7395; font-size: 10px; }
+.forecast-hour-button:hover { background: #fff6ee; transform: translateY(-2px); }
+.forecast-hour-button.is-selected { background: #fff0e5; border-color: #efc7aa; color: #a9451b; }
+.forecast-hour-button.is-selected strong { color: #a9451b; }
+.forecast-empty { padding: 30px 0; color: #726b77; font-size: 12px; }
+@keyframes forecast-line-in { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes forecast-view-in { from { opacity: .45; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 520px) {
+  .forecast-chart-meta { gap: 8px; }
+  .forecast-chart-legend { gap: 8px; font-size: 9px; }
+  .forecast-selected { gap: 6px; padding: 4px 7px; font-size: 10px; }
+  .forecast-selected strong { font-size: 12px; }
+  .forecast-gridline text, .forecast-time-tick { font-size: 20px; }
+  .forecast-hour-button { flex-basis: 57px; width: 57px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .forecast-hourly-view, .forecast-interactive .daily-forecast, .forecast-temperature-line { animation: none; }
+  .forecast-hour-button { transition: none; }
+  .forecast-hour-button:hover { transform: none; }
+}

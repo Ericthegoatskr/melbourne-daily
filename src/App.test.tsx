@@ -157,6 +157,11 @@ describe("dashboard interactions and data honesty", () => {
       uv.getByText(/This reading is the same for all suburbs./),
     ).toBeTruthy();
     expect(parking.getByText("1,234")).toBeTruthy();
+    const glance = within(screen.getByRole("region", { name: "At a glance" }));
+    expect(glance.getByText("1,234")).toBeTruthy();
+    expect(glance.getByText("0.0")).toBeTruthy();
+    expect(glance.getByText("Regional PM2.5 estimate")).toBeTruthy();
+    expect(glance.getByText(/CAMS model · valid/)).toBeTruthy();
     expect(screen.getByText("4 data feeds available")).toBeTruthy();
   });
 
@@ -215,8 +220,8 @@ describe("dashboard interactions and data honesty", () => {
         name: "24-hour forecast, scroll horizontally",
       }),
     ).toBeNull();
-    expect(screen.getByText("Today")).toBeTruthy();
-    expect(screen.getByText("Tomorrow")).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Weather" })).getByText("Today")).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Weather" })).getByText("Tomorrow")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "24 hours" }));
     expect(
       screen.getByRole("region", {
@@ -329,13 +334,16 @@ describe("dashboard interactions and data honesty", () => {
   it("ages out UV and parking numbers even when repeated downloads have an old source timestamp", async () => {
     await openApp();
     expect(screen.getByLabelText("UV 0.0, Low")).toBeTruthy();
-    expect(screen.getByText("1,234")).toBeTruthy();
+    expect(screen.getAllByText("1,234")).toHaveLength(2);
     // Mocks keep returning the original source timestamp, despite a later fetch.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(16 * 60_000);
     });
     expect(screen.queryByLabelText("UV 0.0, Low")).toBeNull();
-    expect(screen.queryByText("1,234")).toBeNull();
+    expect(screen.queryAllByText("1,234")).toHaveLength(0);
+    const glance = within(screen.getByRole("region", { name: "At a glance" }));
+    expect(glance.queryByText("0.0")).toBeNull();
+    expect(glance.getByText("Melbourne station awaiting data")).toBeTruthy();
     expect(screen.getByText("UV observation has expired")).toBeTruthy();
     expect(
       screen.getByText("Parking data has expired; counts are hidden"),
@@ -348,7 +356,7 @@ describe("dashboard interactions and data honesty", () => {
     vi.mocked(fetchUV).mockRejectedValue(new Error("Station unavailable"));
     await openApp();
     expect(screen.getByText("UV is temporarily unavailable")).toBeTruthy();
-    expect(screen.getByText("1,234")).toBeTruthy();
+    expect(screen.getAllByText("1,234")).toHaveLength(2);
     expect(screen.getByText(/Feels like 15°/)).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Refresh" }).hasAttribute("disabled"),

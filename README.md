@@ -6,6 +6,12 @@ An English-language dashboard for everyday Melbourne: weather, UV, parking, regi
 
 GitHub Pages serves the revision from the latest successful deployment. **EPA station observations are live on the public homepage** through a validated JSON snapshot, with provider credentials kept out of the browser. PTV departures are implemented but remain unavailable until their credentials are configured.
 
+## Dashboard collection style
+
+The homepage uses a shared white-and-orange visual system with lavender, mint and peach summary cards. It includes an interactive hourly weather chart, keyboard and touch forecast selection, weather illustrations, finite entrance animations and feedback when readings change. Reduced-motion preferences disable animation. Summary cards preserve the same source times and expiry rules as their detailed panels.
+
+The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). This release establishes the entrance page's style. The separate Parking Dashboard remains available at its existing link.
+
 ## Available without credentials
 
 - A shared suburb selector, modeled current weather, a 24-hour forecast and a three-day outlook.

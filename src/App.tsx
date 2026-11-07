@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowDown,
-  ArrowUp,
   ArrowUpRight,
   Bookmark,
   CarFront,
@@ -30,7 +28,6 @@ import {
   fetchWeather,
   fetchUV,
   weatherLabel,
-  type WeatherData,
 } from "./lib/weather";
 import { fetchParking } from "./lib/parking";
 import { fetchAir, AIR_SOURCE_URL, AIR_REFRESH_MS } from "./lib/air";
@@ -48,9 +45,11 @@ import {
   EmptyState,
   ExternalLink,
   SourceTime,
-  WeatherIcon,
 } from "./components/ui";
-import { forecastDayLabel, forecastIsDay, melbourneDate } from "./lib/forecast";
+import { melbourneDate } from "./lib/forecast";
+import Forecast from "./components/Forecast";
+import WeatherScene from "./components/WeatherScene";
+import ValueChange from "./components/ValueChange";
 import CommutePanel from "./components/CommutePanel";
 import EpaPanel from "./components/EpaPanel";
 
@@ -66,6 +65,12 @@ const navItems = [
   { id: "parking", label: "Street parking", icon: CarFront },
   { id: "air", label: "Air quality", icon: Wind },
 ];
+function sectionFromHash() {
+  const id = window.location.hash.slice(1);
+  return navItems.some((item) => item.id === id) || id === "collection" || id === "sources"
+    ? id
+    : "overview";
+}
 const fmt = (n: number) => new Intl.NumberFormat("en-AU").format(n);
 const rounded = (n: number) => Math.round(n);
 function uvLabel(value: number) {
@@ -80,116 +85,6 @@ function uvLabel(value: number) {
           : "Extreme";
 }
 
-function Forecast({ data, now }: { data: WeatherData; now: number }) {
-  const [view, setView] = useState<"hourly" | "daily">("hourly");
-  const hourly = data.hourly
-    .filter(
-      (hour) =>
-        Date.parse(hour.time) >= Math.floor(now / 3_600_000) * 3_600_000,
-    )
-    .slice(0, 24);
-  const days = data.daily.filter((day) => day.date >= melbourneDate(now));
-  const lows = Math.min(...hourly.map((h) => h.temperature)) - 2;
-  const highs = Math.max(...hourly.map((h) => h.temperature)) + 2;
-  const points = hourly
-    .map(
-      (h, i) =>
-        `${24 + i * 66},${62 - ((h.temperature - lows) / (highs - lows)) * 46}`,
-    )
-    .join(" ");
-  return (
-    <div className="forecast">
-      <div className="forecast-heading">
-        <span>
-          {view === "hourly" ? "Your next 24 hours" : "The days ahead"}
-        </span>
-        <div className="segmented" role="group" aria-label="Forecast range">
-          <button
-            aria-pressed={view === "hourly"}
-            onClick={() => setView("hourly")}
-          >
-            24 hours
-          </button>
-          <button
-            aria-pressed={view === "daily"}
-            onClick={() => setView("daily")}
-          >
-            3-day forecast
-          </button>
-        </div>
-      </div>
-      {view === "hourly" ? (
-        <div
-          className="hourly-scroll"
-          tabIndex={0}
-          role="region"
-          aria-label="24-hour forecast, scroll horizontally"
-        >
-          <div
-            className="hourly-inner"
-            style={{ width: Math.max(520, hourly.length * 66) }}
-          >
-            <svg
-              className="forecast-line"
-              viewBox={`0 0 ${Math.max(520, hourly.length * 66)} 78`}
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <polyline
-                points={points}
-                fill="none"
-                stroke="#d48c3d"
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {hourly.map((hour, i) => (
-              <div className="hour" key={hour.time}>
-                <span className={i === 0 ? "hour-now" : ""}>
-                  {i === 0 ? "Now" : melbourneTime(hour.time)}
-                </span>
-                <WeatherIcon
-                  code={hour.weatherCode}
-                  isDay={forecastIsDay(hour.time, data.daily)}
-                  size={22}
-                />
-                <strong>{rounded(hour.temperature)}°</strong>
-                <small>
-                  <Droplets size={10} />
-                  {hour.rainProbability}%
-                </small>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="daily-forecast">
-          {days.map((day) => (
-            <div className="day" key={day.date}>
-              <span>{forecastDayLabel(day.date, now)}</span>
-              <span>
-                <ArrowDown size={12} />
-                {rounded(day.min)}°{" "}
-                <b>
-                  <ArrowUp size={12} />
-                  {rounded(day.max)}°
-                </b>
-              </span>
-              <span>
-                <Droplets size={13} />
-                {day.rainProbability}%
-              </span>
-              <span>
-                Max UV <b>{day.uvMax.toFixed(1)}</b>
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function App() {
   const now = useNow();
   const [locationId, setLocationId] = useState(() =>
@@ -198,7 +93,12 @@ export default function App() {
   const location =
     LOCATIONS.find((place) => place.id === locationId) || LOCATIONS[0];
   const [revision, setRevision] = useState(0);
-  const [active, setActive] = useState("overview");
+  const [active, setActive] = useState(sectionFromHash);
+  useEffect(() => {
+    const syncNavigation = () => setActive(sectionFromHash());
+    window.addEventListener("hashchange", syncNavigation);
+    return () => window.removeEventListener("hashchange", syncNavigation);
+  }, []);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const sidebar = useRef<HTMLElement>(null);
@@ -364,7 +264,7 @@ export default function App() {
             </span>
           </span>
         </a>
-        <span className="sidebar-label">YOUR EVERYDAY COMPANION</span>
+        <span className="sidebar-label">YOUR CITY. YOUR EVERYDAY.</span>
         <nav>
           {navItems.map((item) => (
             <a
@@ -398,7 +298,7 @@ export default function App() {
             Sources & status
           </a>
           <ExternalLink href={REPO_URL}>View on GitHub</ExternalLink>
-          <span className="version">MELBOURNE DAILY · V1.1</span>
+          <span className="version">THE MELBOURNE COLLECTION</span>
         </div>
       </aside>
 
@@ -415,7 +315,7 @@ export default function App() {
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
             <span className="breadcrumb">
-              Your city, at a glance <span>/</span> <strong>Overview</strong>
+              Your city, at a glance <span>/</span> <strong>{navItems.find((item) => item.id === active)?.label || (active === "collection" ? "The collection" : "Sources & status")}</strong>
             </span>
           </div>
           <div className="topbar-right">
@@ -478,6 +378,61 @@ export default function App() {
             </div>
           )}
 
+          <section className="summary-grid" aria-label="At a glance">
+            <a className="summary-tile summary-tile--weather" href="#weather" onClick={() => navigate("weather")}>
+              <span className="summary-icon"><CloudSun size={20} /></span>
+              <ArrowUpRight className="summary-arrow" size={17} aria-hidden="true" />
+              <span className="summary-label">Outside right now</span>
+              <strong className="summary-value">
+                <ValueChange value={w ? `${rounded(w.current.temperature)}°` : "—"} />
+                <small>{w ? weatherLabel(w.current.weatherCode) : weather.loading ? "Loading" : "Unavailable"}</small>
+              </strong>
+              <span className="summary-detail">{w ? `Model · valid ${melbourneTime(w.current.time)}${weatherState === "delayed" ? " · Delayed" : ""}` : "Weather model awaiting data"}</span>
+            </a>
+            <a className="summary-tile summary-tile--uv" href="#weather" onClick={() => navigate("weather")}>
+              <span className="summary-icon"><Sun size={20} /></span>
+              <ArrowUpRight className="summary-arrow" size={17} aria-hidden="true" />
+              <span className="summary-label">Observed UV</span>
+              <strong className="summary-value">
+                <ValueChange value={u ? u.value.toFixed(1) : "—"} />
+                <small>{u ? uvLabel(u.value) : uv.loading ? "Loading" : "Unavailable"}</small>
+              </strong>
+              <span className="summary-detail">{u ? `ARPANSA · ${melbourneTime(u.observedAt)}${uvState === "delayed" ? " · Delayed" : ""}` : "Melbourne station awaiting data"}</span>
+            </a>
+            <a className="summary-tile summary-tile--parking" href="#parking" onClick={() => navigate("parking")}>
+              <span className="summary-icon"><CarFront size={20} /></span>
+              <ArrowUpRight className="summary-arrow" size={17} aria-hidden="true" />
+              <span className="summary-label">Available parking bays</span>
+              <strong className="summary-value">
+                <ValueChange value={p ? fmt(p.available) : "—"} />
+                <small>{p ? "reporting" : parking.loading ? "Loading" : "Unavailable"}</small>
+              </strong>
+              <span className="summary-detail">{p ? `City of Melbourne · ${melbourneTime(p.observedAt)}${parkingState === "delayed" ? " · Delayed" : ""}` : "City of Melbourne sensors awaiting data"}</span>
+            </a>
+            <a className="summary-tile summary-tile--air" href="#air" onClick={() => navigate("air")}>
+              <span className="summary-icon"><Wind size={20} /></span>
+              <ArrowUpRight className="summary-arrow" size={17} aria-hidden="true" />
+              <span className="summary-label">Regional PM2.5 estimate</span>
+              <strong className="summary-value">
+                <ValueChange value={a ? a.pm25.toFixed(1) : "—"} />
+                <small>{a ? "µg/m³" : air.loading ? "Loading" : "Unavailable"}</small>
+              </strong>
+              <span className="summary-detail">{a ? `CAMS model · valid ${melbourneTime(a.modelTime)}${airState === "delayed" ? " · Delayed" : ""}` : "Regional model awaiting data"}</span>
+            </a>
+          </section>
+
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">YOUR DAILY OVERVIEW</span>
+              <h2>A closer look</h2>
+            </div>
+            <nav className="overview-tabs" aria-label="Dashboard shortcuts">
+              <a href="#overview" className={active === "overview" ? "active" : ""} aria-current={active === "overview" ? "location" : undefined} onClick={() => navigate("overview")}>Today</a>
+              <a href="#transport" className={active === "transport" ? "active" : ""} aria-current={active === "transport" ? "location" : undefined} onClick={() => navigate("transport")}>My commute</a>
+              <a href="#collection" className={active === "collection" ? "active" : ""} aria-current={active === "collection" ? "location" : undefined} onClick={() => navigate("collection")}>The collection <ArrowUpRight size={13} /></a>
+            </nav>
+          </div>
+
           <div className="dashboard-grid">
             <section
               className="card weather-card"
@@ -497,7 +452,7 @@ export default function App() {
                   <div className="weather-current">
                     <div className="temperature-block">
                       <div className="temperature">
-                        {rounded(w.current.temperature)}
+                        <ValueChange value={rounded(w.current.temperature)} />
                         <span>°C</span>
                       </div>
                       <div className="weather-description">
@@ -515,10 +470,9 @@ export default function App() {
                       </div>
                     </div>
                     <div className="weather-hero-icon">
-                      <WeatherIcon
+                      <WeatherScene
                         code={w.current.weatherCode}
                         isDay={w.current.isDay}
-                        size={105}
                       />
                     </div>
                   </div>
@@ -606,7 +560,7 @@ export default function App() {
                 <div className="uv-content">
                   <p className="section-kicker">MELBOURNE STATION</p>
                   <div className="uv-number">
-                    {u.value.toFixed(1)}
+                    <ValueChange value={u.value.toFixed(1)} />
                     <span
                       className={`uv-category uv-${u.value < 3 ? "low" : u.value < 6 ? "medium" : "high"}`}
                     >
@@ -990,7 +944,7 @@ export default function App() {
               )}
             </section>
 
-            <section className="explore-card" aria-labelledby="explore-title">
+            <section id="collection" className="explore-card" aria-labelledby="explore-title">
               <div className="explore-topline">
                 <span>THE DASHBOARD COLLECTION</span>
                 <span>01 / MORE TO COME</span>
