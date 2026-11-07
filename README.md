@@ -4,7 +4,7 @@ An English-language dashboard for everyday Melbourne: weather, UV, parking, regi
 
 [Dashboard](https://ericthegoatskr.github.io/melbourne-daily/) · [Full parking dashboard](https://ericthegoatskr.github.io/melbourne-parking-dashboard/) · [Data sources](docs/data-sources.md) · [Release checklist](docs/remaining-scope.md)
 
-GitHub Pages serves the revision from the latest successful deployment. The frontend works without provider credentials. Embedded PTV departures and EPA station observations are implemented and tested, but **are not connected to live provider data yet**.
+GitHub Pages serves the revision from the latest successful deployment. The frontend works without provider credentials. Embedded PTV departures and EPA station observations are implemented and tested, but **are not activated on the public frontend yet**. Live EPA categories and hourly PM2.5/PM10 readings have been verified through the private backend. PTV credentials remain pending.
 
 ## Available without credentials
 
@@ -18,13 +18,13 @@ GitHub Pages serves the revision from the latest successful deployment. The fron
 
 The initial directory contains 2,165 boarding-point records, including individual platforms and opposite-side tram stops. It is a location directory, not a live timetable. A weekly update workflow refreshes it from the official source; stop counts can change.
 
-## Implemented, awaiting live access
+## Implemented, awaiting public activation
 
 The transit board supports route/direction selection, separate direction favourites, up to five departures, live estimates versus scheduled times, cancellations and service updates. Direction choices come from an authorised PTV response; without that response, a local favourite keeps the stop with all directions.
 
 The EPA panel supports the nearest eligible monitoring station within 100 km of the chosen suburb, station distance, the provider's category, available hourly PM2.5/PM10 readings and each reading's timestamp. Model estimates remain a separate source. Missing or stale observations never become a “Good” category.
 
-Both features need a publicly reachable backend, runtime provider credentials and verification against actual authorised responses before activation. The separate Sites backend deployment is currently private; a private deployment does not make it usable by the public Pages application. `VITE_DATA_API_URL` remains unset. The public site therefore shows clear unavailable states and official alternatives for these feeds. See the [backend setup and release gates](docs/backend.md).
+The EPA subscription key is stored as a backend Secret, and its `X-API-Key` authentication header is confirmed. On 7 November 2026, the private backend returned 93 station records, including current categories and hourly pollutant readings where available; an Alphington sample matched EPA's public website. PTV still needs its own credentials. Public activation also requires an authorised change to the backend's audience and end-to-end checks. The Sites backend remains owner-private and `VITE_DATA_API_URL` remains unset, so the public site shows unavailable states and official alternatives for these feeds. See the [backend verification record and release gates](docs/backend.md).
 
 ## Run locally
 
