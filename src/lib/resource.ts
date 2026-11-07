@@ -7,7 +7,7 @@ export type Resource<T> = {
   loading: boolean;
 };
 
-/** Poll independent feeds; cancel superseded requests and reject timestamp regressions. */
+/** Poll visible feeds; cancel superseded requests and reject timestamp regressions. */
 export function useResource<T>(
   key: string,
   loader: (signal: AbortSignal) => Promise<T>,
@@ -23,8 +23,19 @@ export function useResource<T>(
   useEffect(() => {
     let disposed = false;
     let controller: AbortController | undefined;
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let running = false;
+    let nextPollAt = 0;
+    const visible = () => document.visibilityState !== "hidden";
+    const schedule = () => {
+      clearTimeout(timer);
+      if (!disposed && !running && visible()) {
+        timer = setTimeout(poll, Math.max(0, nextPollAt - Date.now()));
+      }
+    };
     async function poll() {
+      if (disposed || running || !visible()) return;
+      running = true;
       controller = new AbortController();
       setState((previous) => ({
         ...(previous.key === key ? previous : { key }),
@@ -61,15 +72,20 @@ export function useResource<T>(
               : "Data is temporarily unavailable",
         }));
       } finally {
-        if (!disposed) timer = setTimeout(poll, interval);
+        running = false;
+        nextPollAt = Date.now() + interval;
+        schedule();
       }
     }
     void poll();
-    // The regular polling cycle recovers a connection; manual refresh restarts this effect.
+    // Keep an in-flight result, but avoid timers/network work while a phone is locked
+    // or the tab is in the background. Returning resumes any overdue poll once.
+    document.addEventListener("visibilitychange", schedule);
     return () => {
       disposed = true;
       clearTimeout(timer);
       controller?.abort();
+      document.removeEventListener("visibilitychange", schedule);
     };
   }, [key, interval, revision]);
   return state.key === key ? state : { key, loading: true };
@@ -78,13 +94,23 @@ export function useResource<T>(
 export function useNow() {
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
-    const update = () => setNow(Date.now());
-    const timer = setInterval(update, 15_000);
-    document.addEventListener("visibilitychange", update);
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const update = () => {
+      if (document.visibilityState !== "hidden") setNow(Date.now());
+    };
+    const resume = () => {
+      clearInterval(timer);
+      if (document.visibilityState !== "hidden") {
+        update();
+        timer = setInterval(update, 15_000);
+      }
+    };
+    resume();
+    document.addEventListener("visibilitychange", resume);
     window.addEventListener("focus", update);
     return () => {
       clearInterval(timer);
-      document.removeEventListener("visibilitychange", update);
+      document.removeEventListener("visibilitychange", resume);
       window.removeEventListener("focus", update);
     };
   }, []);
@@ -105,17 +131,21 @@ export function freshness(
   return age <= freshMinutes * 60_000 ? "fresh" : "delayed";
 }
 
+const timeOptions: Intl.DateTimeFormatOptions = {
+  timeZone: "Australia/Melbourne",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+};
+const timeFormatter = new Intl.DateTimeFormat("en-AU", timeOptions);
+
 export const melbourneTime = (
   date: string | number,
   options?: Intl.DateTimeFormatOptions,
-) =>
-  new Intl.DateTimeFormat("en-AU", {
-    timeZone: "Australia/Melbourne",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    ...options,
-  }).format(new Date(date));
+) => (options
+  ? new Intl.DateTimeFormat("en-AU", { ...timeOptions, ...options })
+  : timeFormatter
+).format(new Date(date));
 
 export function ago(timestamp: string, now: number) {
   const minutes = Math.max(

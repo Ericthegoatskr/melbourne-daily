@@ -33,6 +33,10 @@ All Daily pages share `useNavigationDrawer` for scroll locking, initial focus, T
 
 Keep controls keyboard accessible, retain visible focus indicators, and let the mobile navigation close with Escape and restore focus. Horizontal scrolling belongs inside the hourly strip, never the whole page. Avoid autoplay decorative loops, fake performance percentages and ornamental controls without an action.
 
+Mobile controls use at least 44px touch targets and editable selects keep a 16px font. Below 370px, the suburb refresh action keeps its accessible text while showing only the icon, leaving room for the full suburb name. Opaque mobile headers and bottom navigation avoid filtering the scrolling page behind them. Do not impose a body minimum width that exceeds the viewport after scrollbars are accounted for.
+
+Load the shared font from each HTML entry so its discovery does not depend on downloading application CSS. Shared feed polling and clocks pause while the document is hidden; returning updates freshness immediately and resumes a single overdue poll. Existing timestamp validation, cancellation and expiry rules still apply. Reuse Melbourne date/time formatters during forecast interaction instead of constructing them for every rendered hour.
+
 ## Scope and verification
 
 The redesign changes presentation, forecast interaction and EPA station browsing. EPA collection, backend secrets, PTV readiness, source timestamps, expiry rules and location-specific request cancellation remain in their existing modules. PTV live data stays unavailable until authorised credentials and production verification are complete.

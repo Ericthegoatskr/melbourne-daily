@@ -228,7 +228,7 @@
   .weather-dashboard .local-clock { font-size: 9px; padding: 6px 7px; }
   .weather-dashboard .page-controls { gap: 7px; }
   .weather-dashboard .location-picker { padding-inline: 9px; gap: 5px; }
-  .weather-dashboard .location-picker select { font-size: 14px; }
+  .weather-dashboard .location-picker select { font-size: 16px; }
   .weather-dashboard .refresh-button { padding: 11px; }
   .wx-source-pill { padding: 10px; }
   .wx-current-body { min-height: 220px; }

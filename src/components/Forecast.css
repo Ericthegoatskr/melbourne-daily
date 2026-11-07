@@ -39,6 +39,12 @@
 .forecast-empty { padding: 30px 0; color: #726b77; font-size: 12px; }
 @keyframes forecast-line-in { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes forecast-view-in { from { opacity: .45; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 760px) {
+  .forecast-scrubber input { height: 44px; touch-action: pan-y; }
+}
+@media (hover: none) {
+  .forecast-hour-button:hover { transform: none; }
+}
 @media (max-width: 520px) {
   .forecast-chart-meta { gap: 8px; }
   .forecast-chart-legend { gap: 8px; font-size: 9px; }

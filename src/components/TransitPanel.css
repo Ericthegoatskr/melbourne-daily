@@ -76,7 +76,8 @@
   .tr-workspace { gap: 17px; }
   .tr-workspace > .tr-stop-panel, .tr-workspace > .tr-departures-panel, .tr-workspace > .tr-services-panel { grid-column: 1 / -1; }
   .tr-workspace .stop-search-input input, .tr-workspace .direction-picker select { font-size: 16px; }
-  .tr-workspace .segmented button { min-height: 40px; }
+  .tr-workspace .segmented button { min-height: 44px; }
+  .tr-workspace .remove-commute, .tr-workspace .save-stop { min-width: 44px; min-height: 44px; }
 }
 @media (max-width: 520px) {
   .tr-workspace .card-title h2 { font-size: 15px; }

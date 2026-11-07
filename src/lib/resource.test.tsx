@@ -209,6 +209,74 @@ describe("resource lifecycle visible to dashboard cards", () => {
     unmount();
     expect(signals[1].aborted).toBe(true);
   });
+
+  it("pauses background polling and refreshes overdue data once when the tab returns", async () => {
+    vi.useFakeTimers();
+    let visibility: DocumentVisibilityState = "visible";
+    vi.spyOn(document, "visibilityState", "get").mockImplementation(() => visibility);
+    const loader = vi.fn().mockResolvedValue(initial);
+    const { result, unmount } = renderHook(() => useResource("weather", loader, 60_000, 0, timestamp));
+    await act(async () => {});
+    expect(loader).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      visibility = "hidden";
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(5 * 60_000);
+    });
+    expect(loader).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(result.current.data).toEqual(initial);
+
+    await act(async () => {
+      visibility = "visible";
+      document.dispatchEvent(new Event("visibilitychange"));
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(loader).toHaveBeenCalledTimes(2);
+    await act(async () => { await vi.advanceTimersByTimeAsync(59_999); });
+    expect(loader).toHaveBeenCalledTimes(2);
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("retains an in-flight result while hidden without overlapping requests on return", async () => {
+    vi.useFakeTimers();
+    let visibility: DocumentVisibilityState = "visible";
+    vi.spyOn(document, "visibilityState", "get").mockImplementation(() => visibility);
+    const pending = deferred<Reading>();
+    const loader = vi.fn().mockReturnValue(pending.promise);
+    const { result } = renderHook(() => useResource("uv", loader, 60_000, 0, timestamp));
+    await act(async () => {
+      visibility = "hidden";
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(120_000);
+      visibility = "visible";
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(loader).toHaveBeenCalledTimes(1);
+    await act(async () => { pending.resolve(initial); });
+    expect(result.current).toEqual({ key: "uv", data: initial, loading: false });
+    expect(loader).toHaveBeenCalledTimes(1);
+  });
+
+  it("defers a page opened in the background until it becomes visible", async () => {
+    vi.useFakeTimers();
+    let visibility: DocumentVisibilityState = "hidden";
+    vi.spyOn(document, "visibilityState", "get").mockImplementation(() => visibility);
+    const loader = vi.fn().mockResolvedValue(initial);
+    renderHook(() => useResource("air", loader, 60_000, 0, timestamp));
+    expect(loader).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+    await act(async () => {
+      visibility = "visible";
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(loader).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("freshness and retained data aging", () => {
@@ -270,5 +338,29 @@ describe("freshness and retained data aging", () => {
     expect(result.current).toBe("stale");
     unmount();
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("stops hidden clock renders and immediately corrects data freshness when returning", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(initial.observedAt));
+    let visibility: DocumentVisibilityState = "visible";
+    vi.spyOn(document, "visibilityState", "get").mockImplementation(() => visibility);
+    const { result } = renderHook(() => useNow());
+    const previous = result.current;
+    await act(async () => {
+      visibility = "hidden";
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(20 * 60_000);
+      window.dispatchEvent(new Event("focus"));
+    });
+    expect(result.current).toBe(previous);
+    expect(vi.getTimerCount()).toBe(0);
+    act(() => {
+      visibility = "visible";
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(result.current).toBe(Date.now());
+    expect(freshness(initial.observedAt, result.current, 5, 15)).toBe("stale");
+    expect(vi.getTimerCount()).toBe(1);
   });
 });

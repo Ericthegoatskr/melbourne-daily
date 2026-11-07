@@ -117,6 +117,7 @@
   .aq-source-grid { gap: 19px; }
   .aq-source-grid article + article { padding-left: 19px; }
   .aq-station-search input { font-size: 16px; }
+  .aq-nearest-button { min-height: 44px; }
 }
 @media (max-width: 520px) {
   .air-dashboard .aq-grid .card-title h2 { font-size: 15px; }
@@ -140,7 +141,7 @@
   .air-dashboard .local-clock { font-size: 9px; padding: 6px 7px; }
   .air-dashboard .page-controls { gap: 7px; }
   .air-dashboard .location-picker { padding-inline: 9px; gap: 5px; }
-  .air-dashboard .location-picker select { font-size: 14px; }
+  .air-dashboard .location-picker select { font-size: 16px; }
   .air-dashboard .refresh-button { padding: 11px; }
   .aq-status-pill { padding: 10px; gap: 5px; }
   .aq-status-pill > strong { font-size: 9px; }

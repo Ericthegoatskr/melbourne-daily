@@ -1,11 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700;750&display=swap");
 @import "./styles/tokens.css";
 
 /* Foundations */
 :root { font-family: var(--font-ui); color: var(--ink); background: var(--canvas); font-synthesis: none; font-weight: 400; line-height: 1.5; font-size: 14px; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; }
+body { margin: 0; min-width: 0; }
 button, select, input { font: inherit; }
 button, a, select { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; color: inherit; }
@@ -498,10 +497,12 @@ h2 { font-weight: 600; font-size: 15px; letter-spacing: -.25px; }
 @media (max-width: 760px) {
   .sidebar { transform: translateX(-100%); visibility: hidden; transition: transform 240ms var(--ease-out), visibility 240ms; width: 238px; padding: 30px 20px 24px; box-shadow: 8px 0 35px #2c203e1a; }
   .sidebar.is-open { transform: translateX(0); visibility: visible; }
-  .menu-backdrop { display: block; position: fixed; inset: 0; background: #29213770; backdrop-filter: blur(3px); border: 0; z-index: 14; }
+  .menu-backdrop { display: block; position: fixed; inset: 0; background: #29213770; border: 0; z-index: 14; }
   .main-shell { margin-left: 0; }
   .menu-button { display: flex; }
-  .topbar { padding: 0 20px; height: 65px; gap: 12px; }
+  .menu-button, .drawer-close { min-width: 44px; min-height: 44px; }
+  /* Opaque fixed surfaces avoid filtering the whole scrolling page on mobile. */
+  .topbar { padding: 0 20px; height: 65px; gap: 12px; background: #fff; backdrop-filter: none; }
   .topbar-left { gap: 10px; }
   .topbar-right { gap: 12px; }
   .original-link, .topbar-divider { display: none; }
@@ -515,16 +516,18 @@ h2 { font-weight: 600; font-size: 15px; letter-spacing: -.25px; }
   .intro h1 { font-size: 34px; letter-spacing: -1.3px; max-width: 490px; }
   .intro p { font-size: 12px; margin-top: 10px; }
   .page-controls { width: 100%; margin: 0; justify-content: space-between; gap: 10px; }
-  .location-picker { flex: 1; padding: 11px 12px; }
-  .location-picker select { max-width: none; width: 100%; font-size: 13px; }
-  .refresh-button { padding: 11px 14px; font-size: 12px; }
+  .location-picker { flex: 1; min-width: 0; padding: 0 12px; min-height: 46px; }
+  .location-picker select { min-width: 0; max-width: none; width: 100%; min-height: 44px; font-size: 16px; }
+  .refresh-button { padding: 11px 14px; min-height: 46px; flex-shrink: 0; font-size: 12px; }
   .summary-grid { gap: 12px; margin: 23px 0 26px; }
   .summary-tile { min-height: 148px; padding: 17px; }
   .summary-label { font-size: 11px; }
   .summary-value { font-size: 30px; }
   .section-heading { gap: 13px; margin-bottom: 16px; }
   .overview-tabs { width: fit-content; }
-  .overview-tabs a { font-size: 10px; padding: 6px 11px; }
+  .overview-tabs a { display: inline-flex; align-items: center; min-height: 44px; font-size: 10px; padding: 6px 11px; }
+  .segmented button, .commute-heading .text-button, .inline-button { min-height: 44px; }
+  .save-stop, .remove-commute { min-width: 44px; min-height: 44px; }
   .dashboard-grid { gap: 17px; }
   .card { border-radius: 20px; padding: 21px 20px 0; }
   .card-heading { gap: 7px; }
@@ -546,11 +549,11 @@ h2 { font-weight: 600; font-size: 15px; letter-spacing: -.25px; }
   .page-footer { padding: 23px 0; gap: 11px; }
   .transport-destination small { font-size: 12px; }
   .transport-row { padding: 15px 0; }
-  .favorite-button { min-height: 38px; min-width: 36px; }
+  .favorite-button { min-height: 44px; min-width: 44px; }
   .air-context p { font-size: 12px; }
   .air-links a, .data-details summary { font-size: 12px; }
   .stop-search-input input { font-size: 16px; }
-  .direction-picker select { font-size: 13px; }
+  .direction-picker select { font-size: 16px; min-height: 44px; }
 }
 @media (max-width: 460px) {
   main { padding: 24px 16px 0; }
@@ -627,6 +630,14 @@ h2 { font-weight: 600; font-size: 15px; letter-spacing: -.25px; }
   .selected-stop strong { font-size: 12px; }
   .epa-readings { gap: 12px; }
   .epa-pollutant > strong { font-size: 26px; }
+}
+@media (max-width: 370px) {
+  /* Keep the complete suburb name readable beside a thumb-sized refresh action. */
+  .location-picker + .refresh-button { min-width: 46px; width: 46px; justify-content: center; gap: 0; }
+  .location-picker + .refresh-button > span { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+@media (hover: none) {
+  .card:hover, .summary-tile:hover, .refresh-button:hover:not(:disabled), .parking-cta:hover, .favorite-button:hover { transform: none; box-shadow: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
