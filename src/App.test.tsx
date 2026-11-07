@@ -130,7 +130,7 @@ describe("dashboard interactions and data honesty", () => {
   it("uses Australian English in document metadata, visible content and accessible labels", async () => {
     const { container } = await openApp();
     expect(within(screen.getByRole("navigation", { name: "Dashboard series" })).getByRole("link", { name: "Home", current: "page" })).toBeTruthy();
-    expect(entryHtml).toMatch(/<html lang="en-AU">/);
+    expect(new DOMParser().parseFromString(entryHtml, "text/html").documentElement.lang).toBe("en-AU");
     expect(
       screen.getByRole("heading", {
         level: 1,

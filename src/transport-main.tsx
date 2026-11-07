@@ -3,6 +3,9 @@ import ReactDOM from "react-dom/client";
 import "./styles.css";
 import TransportApp from "./TransportApp";
 
+import "./styles/navy-theme.css";
+import "./styles/navy-pages.css";
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode><TransportApp /></React.StrictMode>,
 );

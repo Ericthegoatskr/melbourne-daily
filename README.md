@@ -18,6 +18,8 @@ The [PTV transport dashboard](https://ericthegoatskr.github.io/melbourne-daily/t
 
 The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). The homepage, weather, air-quality and transport pages and separate Parking Dashboard use the same collection style. Dedicated layout rules are scoped in `src/WeatherDashboard.css`, `src/AirDashboard.css` and `src/TransportDashboard.css`.
 
+Navy (`#14213D`), cream (`#F4EDE0`) and coral (`#FF6B5B`) are the default palette. Use **Colour theme** in the sidebar/mobile menu to compare the original light style. The choice persists across all five dashboards on this browser. The shared override is `src/styles/navy-theme.css`; data-state colours and all existing functions remain independent of this preference.
+
 Every dashboard has the same series navigation: Home, Parking, Weather & UV, Air quality and Transport. Desktop sidebars separate those page destinations from the current page's section anchors. On mobile, a fixed five-item bottom bar provides direct switching, with space for the device safe area and the page footer. The bottom bar hides while the navigation drawer is open; the drawer traps keyboard focus, closes with Escape and restores focus to its menu button. The current dashboard is identified with `aria-current="page"`.
 
 ## Available without credentials

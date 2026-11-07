@@ -1,0 +1,164 @@
+/* Navy / Cream / Coral surfaces. Status colours retain their original meaning. */
+html[data-theme="navy"] .app-shell .card,
+html[data-theme="navy"] .sources-section,
+html[data-theme="navy"] .wx-sources,
+html[data-theme="navy"] .aq-sources,
+html[data-theme="navy"] .tr-sources {
+  background: #f4ede0;
+  color: #14213d;
+  border-color: #dcd4c6;
+}
+html[data-theme="navy"] .app-shell .card:hover { border-color: #c6b7a2; }
+html[data-theme="navy"] .summary-tile { background: #f4ede0; border-color: #dcd4c6; color: #14213d; }
+html[data-theme="navy"] .summary-tile--uv,
+html[data-theme="navy"] .summary-tile--air {
+  --ink: #f4ede0;
+  --ink-soft: #e0dfdc;
+  --muted: #bdc6d5;
+  background: #20314f;
+  border-color: #3c4a63;
+  color: #f4ede0;
+}
+html[data-theme="navy"] .summary-icon { background: #fff9f0; color: #a83426; }
+html[data-theme="navy"] .summary-tile--parking .summary-icon { color: #38634a; }
+html[data-theme="navy"] .summary-tile--uv .summary-icon,
+html[data-theme="navy"] .summary-tile--air .summary-icon { background: #304363; color: #f4ede0; }
+html[data-theme="navy"] .summary-arrow { color: #596479; }
+html[data-theme="navy"] .summary-tile--uv .summary-arrow,
+html[data-theme="navy"] .summary-tile--air .summary-arrow { color: #bdc6d5; }
+
+/* Opaque sub-surfaces keep small text legible on the dark canvas. */
+html[data-theme="navy"] :is(.weather-metrics, .wx-metric, .uv-forecast, .commute-panel, .air-context, .aq-regional-context) {
+  background: #eae3d7;
+  border-color: #d8d0c2;
+  color: #35425a;
+}
+html[data-theme="navy"] :is(.wx-source-pill, .aq-status-pill, .tr-pinned-strip, .tr-tool-card) {
+  background: #f4ede0;
+  border-color: #dcd4c6;
+  color: #35425a;
+}
+html[data-theme="navy"] :is(.wx-metric > svg, .weather-metrics svg, .uv-forecast > div, .wx-temperature > small) { color: #596479; }
+html[data-theme="navy"] :is(.wx-source-pill, .aq-status-pill) > svg { color: #a83426; }
+html[data-theme="navy"] .epa-panel { background: #eaf0e7; border-color: #ccd9cb; }
+html[data-theme="navy"] .epa-panel p,
+html[data-theme="navy"] .epa-panel :is(.epa-station span, .epa-pollutant > span, .epa-empty span) { color: #4c6353; }
+html[data-theme="navy"] .empty-state { color: #596479; }
+html[data-theme="navy"] :is(.card-footer, .street-row, .transport-row, .favorite-strip, .wx-uv-model) { border-color: #dcd4c6; }
+
+/* Controls use the accent for selection, never for missing or bad data. */
+html[data-theme="navy"] :is(.overview-tabs, .segmented) { background: #e5ddcf; border-color: #d2c8b8; }
+html[data-theme="navy"] .overview-tabs a { color: #35425a; }
+html[data-theme="navy"] .overview-tabs a[aria-current],
+html[data-theme="navy"] .overview-tabs a.active { background: #ff6b5b; color: #14213d; }
+html[data-theme="navy"] .segmented button { color: #596479; }
+html[data-theme="navy"] .segmented button[aria-pressed="true"] { background: #14213d; color: #f4ede0; }
+html[data-theme="navy"] :is(.text-button, .favorite-button, .aq-nearest-button, .tr-workspace .save-stop) {
+  background: #fff9f0;
+  border-color: #cfc5b5;
+  color: #35425a;
+}
+html[data-theme="navy"] :is(.text-button:hover, .favorite-button:hover, .favorite-button[aria-pressed="true"], .aq-nearest-button:hover:not(:disabled)) {
+  background: #ffe1d7;
+  border-color: #d9a79c;
+  color: #a83426;
+}
+html[data-theme="navy"] :is(.favorite-strip a, .transport-icon, .transport-icon.journey, .street-rank, .aq-station-marker, .aq-pollutant-icon, .tr-tool-icon) {
+  background: #e7dfd2;
+  border-color: #d2c8b8;
+  color: #35425a;
+}
+html[data-theme="navy"] .tr-tool-card:nth-child(n) .tr-tool-icon { background: #e7dfd2; color: #35425a; }
+html[data-theme="navy"] :is(.tr-tool-card:hover, .parking-cta) { background: #ffe1d7; border-color: #dfb3a7; color: #a83426; }
+html[data-theme="navy"] .parking-cta:hover { background: #ffd5c9; }
+
+/* Forecast channels stay distinct: coral temperature, slate-blue rain. */
+html[data-theme="navy"] :is(.forecast-chart-legend, .forecast-scrubber, .forecast-empty, .forecast-hour-button) { color: #596479; }
+html[data-theme="navy"] .forecast-temperature-key { background: #c94234; }
+html[data-theme="navy"] .forecast-rain-key { background: #647c9d; }
+html[data-theme="navy"] .forecast-selected { background: #fff9f0; border-color: #dcd4c6; color: #596479; }
+html[data-theme="navy"] .forecast-selected strong { color: #a83426; }
+html[data-theme="navy"] :is(.forecast-selected > span, .forecast-hour-button > span) { color: #455d80; }
+html[data-theme="navy"] .forecast-gridline line { stroke: #d8d0c2; }
+html[data-theme="navy"] :is(.forecast-gridline text, .forecast-time-tick) { fill: #596479; }
+html[data-theme="navy"] .forecast-rain-bar { fill: #647c9d; }
+html[data-theme="navy"] .forecast-temperature-line { stroke: #c94234; }
+html[data-theme="navy"] .forecast-cursor { stroke: #a83426; }
+html[data-theme="navy"] .forecast-point-halo { fill: #ff6b5b; }
+html[data-theme="navy"] .forecast-point { fill: #c94234; stroke: #f4ede0; }
+html[data-theme="navy"] .forecast-scrubber input { accent-color: #c94234; }
+html[data-theme="navy"] .forecast-scrubber input::-webkit-slider-runnable-track { background: #c8bca9; }
+html[data-theme="navy"] .forecast-scrubber input::-moz-range-track { background: #c8bca9; }
+html[data-theme="navy"] .forecast-scrubber input::-webkit-slider-thumb { background: #c94234; border-color: #f4ede0; box-shadow: 0 0 0 1px #a83426; }
+html[data-theme="navy"] .forecast-scrubber input::-moz-range-thumb { background: #c94234; border-color: #f4ede0; box-shadow: 0 0 0 1px #a83426; }
+html[data-theme="navy"] .forecast-hours-scroll { scrollbar-color: #baad98 transparent; }
+html[data-theme="navy"] .forecast-hour-button > svg { color: #596479; }
+html[data-theme="navy"] .forecast-hour-button strong { color: #14213d; }
+html[data-theme="navy"] .forecast-hour-button:hover { background: #eee1d0; }
+html[data-theme="navy"] .forecast-hour-button.is-selected { background: #ffe1d7; border-color: #d9a79c; color: #a83426; }
+html[data-theme="navy"] .forecast-hour-button.is-selected strong { color: #a83426; }
+html[data-theme="navy"] .wx-uv-bar { fill: #647c9d; }
+html[data-theme="navy"] .wx-uv-zero { stroke: #647c9d; }
+html[data-theme="navy"] .wx-uv-baseline { stroke: #d8d0c2; }
+html[data-theme="navy"] .wx-uv-missing { stroke: #596479; }
+html[data-theme="navy"] :is(.uv-marker, .wx-uv-pointer) { background: #14213d; }
+
+/* Search, saved stops and station controls are cream, not translucent white. */
+html[data-theme="navy"] :is(.saved-commute, .stop-search-input, .stop-results, .direction-picker select, .aq-station-search input, .tr-workspace .stop-search-input) {
+  background: #fff9f0;
+  border-color: #d2c8b8;
+  color: #35425a;
+}
+html[data-theme="navy"] :is(.saved-commute span, .commute-heading h3, .selected-stop strong, .stop-results > button, .direction-picker select) { color: #14213d; }
+html[data-theme="navy"] :is(.saved-commute small, .stop-results small, .stop-results > p, .stop-search > p, .commute-help, .directory-date, .selected-stop span, .direction-picker, .commute-attribution) { color: #596479; }
+html[data-theme="navy"] .saved-commute > button[aria-pressed="true"],
+html[data-theme="navy"] .tr-workspace .saved-commute > button[aria-pressed="true"],
+html[data-theme="navy"] .stop-results > button:hover { background: #ffe1d7; }
+html[data-theme="navy"] :is(.remove-commute, .save-stop) { color: #596479; border-color: #d2c8b8; }
+html[data-theme="navy"] .remove-commute:hover { background: #ffe1d7; color: #a83426; }
+html[data-theme="navy"] :is(.stop-search-input:focus-within, .tr-workspace .stop-search-input:focus-within, .aq-station-search input:focus) { border-color: #a83426; box-shadow: 0 0 0 3px #ff6b5b25; }
+html[data-theme="navy"] .stop-results > button { border-color: #e5ddcf; }
+html[data-theme="navy"] :is(.departure-board, .tr-workspace .departure-board) { background: #eae3d7; border-color: #d2c8b8; }
+html[data-theme="navy"] :is(.commute-unavailable, .commute-unavailable strong, .commute-unavailable p) { color: #596479; }
+html[data-theme="navy"] :is(.commute-unavailable a, .inline-button) { color: #a83426; }
+html[data-theme="navy"] .departure-row:not(.is-cancelled) strong { color: #14213d; }
+html[data-theme="navy"] .departure-row:not(.is-cancelled) :is(span, small) { color: #596479; }
+html[data-theme="navy"] .aq-station-row:hover { background: #eae3d7; }
+html[data-theme="navy"] .aq-station-row[aria-pressed="true"],
+html[data-theme="navy"] .aq-station-row[aria-pressed="true"]:hover { background: #ffe1d7; border-color: #d9a79c; }
+html[data-theme="navy"] .aq-station-list { scrollbar-color: #baad98 transparent; }
+html[data-theme="navy"] .aq-station-list > li { border-color: #dcd4c6; }
+html[data-theme="navy"] .aq-stations-empty { background: #eae3d7; border-color: #cfc5b5; }
+
+/* A quiet navy feature surface anchors the larger destination pages. */
+html[data-theme="navy"] .tr-hero,
+html[data-theme="navy"] .app-shell .explore-card {
+  --ink: #f4ede0;
+  --ink-soft: #e0dfdc;
+  --muted: #bdc6d5;
+  --lavender-ink: #f4ede0;
+  background: radial-gradient(ellipse at 95% 100%, #ff6b5b26, transparent 65%), #20314f;
+  border-color: #3c4a63;
+  color: #f4ede0;
+}
+html[data-theme="navy"] :is(.tr-hero-copy > .eyebrow, .explore-topline, .collection-tag) { color: #ff9c8f; }
+html[data-theme="navy"] .tr-hero-links a { color: #f4ede0; }
+html[data-theme="navy"] .tr-hero-links a:first-child { background: #ff6b5b; color: #14213d; border-color: #ff6b5b; }
+html[data-theme="navy"] .tr-hero-links a:hover { color: #f4ede0; }
+html[data-theme="navy"] .tr-hero-links a:first-child:hover { color: #14213d; background: #ff8a7d; }
+html[data-theme="navy"] .tr-status-card { background: #f4ede0; border-color: #dcd4c6; }
+html[data-theme="navy"] .tr-status-card--ready { background: #eaf0e7; border-color: #ccd9cb; }
+html[data-theme="navy"] .tr-status-card > svg { background: #e7dfd2; }
+html[data-theme="navy"] .tr-status-card--ready > svg { background: #f4f6ee; }
+html[data-theme="navy"] .tr-section-heading h2 { color: #f4ede0; }
+html[data-theme="navy"] .tr-section-heading :is(.eyebrow, p),
+html[data-theme="navy"] .tr-workspace > .commute-attribution { color: #bdc6d5; }
+html[data-theme="navy"] .explore-copy h2 { color: #f4ede0; }
+html[data-theme="navy"] .explore-copy p { color: #d0d4dc; }
+html[data-theme="navy"] .explore-copy > a { color: #ff9c8f; }
+html[data-theme="navy"] .round-arrow { background: #ff6b5b; color: #14213d; border-color: #ff6b5b; }
+html[data-theme="navy"] .explore-copy > a:hover .round-arrow { background: #ff9c8f; }
+html[data-theme="navy"] .city-road { background: #52627c; border-color: #708098; }
+html[data-theme="navy"] .city-building { background: #d4ccbc; border-color: #b8ae9c; box-shadow: 9px 9px 0 #8c91a0; }
+html[data-theme="navy"] .city-p { background: #ff6b5b; color: #14213d; border-color: #d4ccbc; }
+html[data-theme="navy"] .city-tree { background: #91a99c; border-color: #b5c3b8; box-shadow: 3px 4px 0 #5c7769; }

@@ -1,10 +1,19 @@
 <!doctype html>
-<html lang="en-AU">
+<html lang="en-AU" data-theme="navy">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f7f6fa" />
     <meta name="description" content="Melbourne weather and UV in one clear dashboard. Local forecasts, observed UV, hourly conditions and sunrise to sunset, with source times you can check." />
+    <script>
+      // Apply the shared preference before styles paint either Pages app.
+      (() => {
+        let theme = "navy";
+        try { if (localStorage.getItem("melbourne-collection:theme") === "light") theme = "light"; } catch {}
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]').content = theme === "navy" ? "#14213D" : "#f7f6fa";
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700;750&amp;display=swap" />
