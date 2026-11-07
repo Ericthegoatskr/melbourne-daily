@@ -75,7 +75,7 @@ export default function Forecast({ data, now }: { data: WeatherData; now: number
             className="forecast-chart"
             viewBox={`0 0 ${WIDTH} 160`}
             role="img"
-            aria-label="Hourly forecast: orange temperature line uses the left °C axis; purple rain probability bars use the right % axis. Use Forecast hour below to explore readings."
+            aria-label="Hourly forecast: temperature line uses the left °C axis; rain probability bars use the right % axis. Use Forecast hour below to explore readings."
             onPointerMove={selectAtPointer}
             onPointerDown={selectAtPointer}
           >

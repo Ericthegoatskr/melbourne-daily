@@ -296,14 +296,11 @@ export default function App() {
         <main id="main">
           <section id="overview" className="intro">
             <div>
-              <div className="eyebrow">
-                <span />
-                {date} · MELBOURNE
-              </div>
               <h1>
                 Your Melbourne day, in one place<span>.</span>
               </h1>
               <p>A little local knowledge for whatever today brings.</p>
+              <p className="intro-date">{date} · Melbourne</p>
             </div>
             <div className="page-controls">
               <label className="location-picker">
@@ -387,7 +384,6 @@ export default function App() {
 
           <div className="section-heading">
             <div>
-              <span className="eyebrow">YOUR DAILY OVERVIEW</span>
               <h2>A closer look</h2>
             </div>
             <nav className="overview-tabs" aria-label="Dashboard shortcuts">

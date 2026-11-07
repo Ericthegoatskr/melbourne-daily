@@ -1,14 +1,26 @@
 # Melbourne dashboard visual system
 
-The entrance homepage defines the shared visual style for the Melbourne dashboard collection. The [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html), [EPA air-quality dashboard](https://ericthegoatskr.github.io/melbourne-daily/air.html) and [PTV transport dashboard](https://ericthegoatskr.github.io/melbourne-daily/transport.html) are dedicated pages in the same application, linked from their homepage cards. Parking Explorer remains a separate application with the same palette and motion language.
+The entrance homepage defines the shared visual style for the Melbourne dashboard collection. The [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html), [EPA air-quality dashboard](https://ericthegoatskr.github.io/melbourne-daily/air.html) and [PTV transport dashboard](https://ericthegoatskr.github.io/melbourne-daily/transport.html) are dedicated pages in the same application, linked from their homepage cards. Parking Explorer remains a separate application with the same navigation and motion language.
 
 ## Visual language
 
-The default palette uses navy `#14213D` for the canvas and navigation, cream `#F4EDE0` for data surfaces, and coral `#FF6B5B` for actions. The reference's 60/30/10 balance is a visual guide, not a restriction on semantic data colours. Source-provided EPA categories, the UV scale and parking availability keep their established meanings. Coral buttons use navy text; small coral text on cream uses a darker accessible shade. Rounded cards, fine borders and shallow shadows separate information without sacrificing contrast. Keep Australian English, Melbourne time and existing source attribution.
+Each destination has a distinct featured palette within one layout and interaction system:
 
-Weather & UV has its own **Sunset glow** featured palette: deep plum, berry, warm gold and orange, inspired by the supplied sunset reference. `weather.html` declares `data-page="weather"`; only that entry imports `sunset-frame.css` and `sunset-weather.css`. Every override also requires the featured theme to be active. The UV card uses light text on plum and gold model-forecast bars; its category badges and five-colour risk meter retain their original meanings. The shared stored value `navy` continues to mean the featured palette, resolving to Sunset glow here and navy elsewhere. The switch label and browser theme colour follow the page; Original light remains available.
+| Destination | Canvas | Accent | Featured theme |
+| --- | --- | --- | --- |
+| Home | `#14213D` | `#FF6B5B` | Navy & coral |
+| Parking | `#2C241B` | `#EDBD69` | Walnut & amber |
+| Weather & UV | `#210C22` | `#FF754B` | Sunset glow |
+| Air quality | `#102E29` | `#9CDBBB` | Forest & mint |
+| Transport | `#252342` | `#BFB2FF` | Indigo & iris |
 
-The sidebar's Colour theme switch restores the original light palette. Its preference uses `melbourne-collection:theme` on the shared GitHub Pages origin, applies before React paints and synchronises across tabs. It works for the current page even when storage is unavailable. Keep `ThemeSwitcher.tsx`, `CollectionNav.css` and `navy-theme.css` identical in both repositories. Theme overrides are scoped to `html[data-theme="navy"]`; `navy-pages.css` and Parking's `navy-parking.css` cover app-specific surfaces. Do not alter layouts, motion or data adapters to switch palettes.
+Impeccable leads this task-oriented interface: colour identifies the destination and interaction state while light data surfaces preserve readability. Shared navigation, type, spacing, source attribution and motion stay consistent. Keep Australian English and Melbourne time. Decorative labels above headings are omitted; factual dates and sources stay below the page description.
+
+`src/styles/palette-tokens.css` defines destination roles. The HTML `data-page` attribute selects the palette; the shared preference `melbourne-collection:theme` selects featured or Original light, applies before React paints and synchronises across tabs. The historical stored value `navy` means featured, avoiding a preference migration. Browser theme colour and the switch name/swatches follow the destination, including when previewing the featured palette from light mode. Storage failure must not disable switching on the current page.
+
+Keep `palette-tokens.css`, `navy-theme.css`, `ThemeSwitcher.tsx`, `CollectionNav.tsx` and `CollectionNav.css` identical in both repositories. Theme overrides require `html[data-theme="navy"]`; `navy-pages.css` and Parking's `navy-parking.css` handle app surfaces. Weather alone imports `sunset-frame.css` and `sunset-weather.css` for its reference-inspired plum, berry, gold and orange treatment.
+
+Colour is not a replacement for data meaning: EPA category badges, UV risk bands and parking map status colours retain their labels and established semantics. Station selection has a check mark as well as a tint. Chart accessibility descriptions refer to the temperature line, rain bars and labelled axes rather than palette-dependent colour names. Do not alter data adapters or animation logic to change themes.
 
 Theme variables are defined in `src/styles/tokens.css` and consumed by `src/styles.css`. Weather-page layout rules live in `src/WeatherDashboard.css`, scoped to `.weather-dashboard` and `wx-` classes so they do not change the homepage. Air-quality layout rules live in `src/AirDashboard.css`, scoped to `.air-dashboard` and `aq-` classes. The weather page reuses `Forecast`, `WeatherScene`, `ValueChange` and the existing feed adapters; the air-quality page reuses the EPA contract, per-field expiry and regional-model adapter. A later dashboard can reuse these tokens without inheriting the entrance page's layout. Keep data adapters independent of presentation.
 

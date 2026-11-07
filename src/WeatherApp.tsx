@@ -106,7 +106,7 @@ export default function WeatherApp() {
         </header>
         <main id="main">
           <section className="intro" id="overview">
-            <div><div className="eyebrow"><span />{date} · MELBOURNE</div><h1>Weather for your Melbourne day<span>.</span></h1><p>A clearer look outside, before you step out.</p></div>
+            <div><h1>Weather for your Melbourne day<span>.</span></h1><p>A clearer look outside, before you step out.</p><p className="intro-date">{date} · Melbourne</p></div>
             <div className="page-controls">
               <label className="location-picker"><MapPin size={17} aria-hidden /><span className="sr-only">Choose your suburb</span>
                 <select value={location.id} onChange={(event) => { setLocationId(event.target.value); savePreference("location", event.target.value); }}>
@@ -149,7 +149,7 @@ export default function WeatherApp() {
             <DaylightPanel weather={w} now={now} loading={weather.loading} onRetry={refresh} />
           </div>
           <section id="sources" className="wx-sources" aria-labelledby="sources-title">
-            <div className="wx-sources-heading"><div><span className="eyebrow">KNOW WHAT YOU’RE READING</span><h2 id="sources-title">Two sources. A clearer picture.</h2></div><Badge tone={w && u ? "green" : "neutral"}>{busy ? "Updating sources" : w && u ? "2 feeds available" : "Some feeds unavailable"}</Badge></div>
+            <div className="wx-sources-heading"><div><h2 id="sources-title">Two sources. A clearer picture.</h2></div><Badge tone={w && u ? "green" : "neutral"}>{busy ? "Updating sources" : w && u ? "2 feeds available" : "Some feeds unavailable"}</Badge></div>
             <div className="wx-source-grid">
               <article><h3><CloudSun size={18} aria-hidden />Weather & forecasts</h3><p>Open-Meteo model estimates for your selected suburb, not a weather station reading. Checked every 15 minutes. Readings are marked delayed after 30 minutes and hidden after 90 minutes.</p><ExternalLink href="https://open-meteo.com/">About Open-Meteo</ExternalLink></article>
               <article><h3><Sun size={18} aria-hidden />Observed UV</h3><p>UV observations courtesy of ARPANSA. One Melbourne station reading is shared across suburbs. Checked every minute, marked delayed after 5 minutes and hidden after 15 minutes. Forecast UV is a separate model estimate.</p><ExternalLink href="https://www.arpansa.gov.au/our-services/monitoring/ultraviolet-radiation-monitoring/ultraviolet-radation-data-information#Disclaimer">ARPANSA UV data disclaimer</ExternalLink></article>

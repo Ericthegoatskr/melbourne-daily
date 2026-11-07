@@ -87,12 +87,12 @@ export default function TransportApp() {
         <header className="topbar"><div className="topbar-left"><button ref={menuButton} className="menu-button icon-button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button><span className="breadcrumb">Your city, at a glance <span>/</span> <strong>Transport</strong></span></div><div className="topbar-right"><span className="local-clock">MEL {melbourneTime(now)}</span><a className="original-link" href={DAILY_URL}>Melbourne Daily<ArrowUpRight size={14} aria-hidden /></a></div></header>
         <main id="main">
           <section className="intro" id="overview">
-            <div><div className="eyebrow"><span />{date} · MELBOURNE</div><h1>A little less rush<span>.</span></h1><p>Your train and tram stops, all in one place.</p></div>
+            <div><h1>A little less rush<span>.</span></h1><p>Your train and tram stops, all in one place.</p><p className="intro-date">{date} · Melbourne</p></div>
             <div className="page-controls"><Badge tone={configured ? "neutral" : "amber"}>{configured ? "PTV departures" : "Live data awaiting activation"}</Badge><button className="refresh-button" onClick={() => setRevision((value) => value + 1)} aria-label="Refresh transport"><RefreshCw size={16} aria-hidden /><span>Refresh</span></button></div>
           </section>
           {!online && <div className="offline-banner" role="status">You’re offline. Saved stops stay on this device. Any previously loaded departures will expire automatically.</div>}
           <section className="tr-hero" aria-labelledby="tr-hero-title">
-            <div className="tr-hero-copy"><span className="eyebrow">MAKE YOURSELF AT HOME, ON THE MOVE</span><h2 id="tr-hero-title">Start with your usual stop.</h2><p>Find a Metro station or tram stop and save it for next time. {configured ? "Choose a stop to check available departures and associated service updates." : "Live arrival times and service updates are awaiting activation. Official travel tools are available below."}</p><div className="tr-hero-links"><a href="#commute" onClick={() => navigate("commute")}><MapPin size={16} aria-hidden />Find my stop<ArrowUpRight size={15} aria-hidden /></a><ExternalLink href="https://transport.vic.gov.au/journey">Plan a journey</ExternalLink></div></div>
+            <div className="tr-hero-copy"><h2 id="tr-hero-title">Start with your usual stop.</h2><p>Find a Metro station or tram stop and save it for next time. {configured ? "Choose a stop to check available departures and associated service updates." : "Live arrival times and service updates are awaiting activation. Official travel tools are available below."}</p><div className="tr-hero-links"><a href="#commute" onClick={() => navigate("commute")}><MapPin size={16} aria-hidden />Find my stop<ArrowUpRight size={15} aria-hidden /></a><ExternalLink href="https://transport.vic.gov.au/journey">Plan a journey</ExternalLink></div></div>
             <TransportScene />
           </section>
           <div className="tr-status-grid" aria-label="Transport feature availability">
@@ -101,11 +101,11 @@ export default function TransportApp() {
             <div className={`tr-status-card ${configured ? "" : "tr-status-card--pending"}`}><RadioTower size={20} aria-hidden /><span>SERVICE UPDATES</span><strong>{configured ? "Check your selection" : "Awaiting activation"}</strong><p>{configured ? "Updates relate to your selected stop and routes, rather than the entire network." : "Use the official network status and disruption links before travelling."}</p></div>
           </div>
           <section className="tr-commute-section" id="commute" aria-labelledby="commute-title">
-            <div className="tr-section-heading"><div><span className="eyebrow">YOUR EVERYDAY ROUTINE</span><h2 id="commute-title">One stop closer.</h2><p>Metro trains and trams · Saved stops are shared with Melbourne Daily.</p></div></div>
+            <div className="tr-section-heading"><div><h2 id="commute-title">One stop closer.</h2><p>Metro trains and trams · Saved stops are shared with Melbourne Daily.</p></div></div>
             <CommutePanel now={now} revision={revision} variant="dashboard" />
           </section>
           <section className="tr-tools" id="tools" aria-labelledby="tools-title">
-            <div className="tr-section-heading"><div><span className="eyebrow">STRAIGHT TO THE SOURCE</span><h2 id="tools-title">Official tools for the rest of your trip.</h2><p>These links open the transport operators’ websites. Pin the ones you use most.</p></div></div>
+            <div className="tr-section-heading"><div><h2 id="tools-title">Official tools for the rest of your trip.</h2><p>These links open the transport operators’ websites. Pin the ones you use most.</p></div></div>
             {favorites.length > 0 && <div className="tr-pinned-strip" aria-label="Pinned travel tools"><Bookmark size={15} aria-hidden /><span>Pinned</span>{favorites.map((id) => transportLinks.find((link) => link.id === id)!).map((link) => <ExternalLink key={link.id} href={link.url}>{link.label}</ExternalLink>)}</div>}
             <div className="tr-tools-grid">{transportLinks.map((link) => {
               const Icon = link.mode === "tram" ? TramFront : link.mode === "journey" ? Compass : link.mode === "bus" ? BusFront : TrainFront;

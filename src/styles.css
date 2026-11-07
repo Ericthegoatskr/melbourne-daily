@@ -644,3 +644,7 @@ h2 { font-weight: 600; font-size: 15px; letter-spacing: -.25px; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .card:hover, .summary-tile:hover, .sidebar nav > a:hover, .refresh-button:hover:not(:disabled), .parking-cta:hover, .favorite-button:hover, .summary-tile:hover .summary-arrow, .explore-copy > a:hover .round-arrow { transform: none; }
 }
+
+/* Date is supporting context, not an extra heading. */
+.intro .intro-date { font-size: 11px; line-height: 1.6; margin-top: 8px; }
+.intro h1 { letter-spacing: -0.035em; text-wrap: balance; }

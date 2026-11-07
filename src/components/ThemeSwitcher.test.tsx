@@ -18,6 +18,34 @@ afterEach(() => {
 });
 
 describe("collection palette preference", () => {
+  it.each([
+    { palette: "amber", label: "Walnut and amber colour theme", name: "Walnut & amber", canvas: "#2c241b" },
+    { palette: "forest", label: "Forest and mint colour theme", name: "Forest & mint", canvas: "#102e29" },
+    { palette: "iris", label: "Indigo and iris colour theme", name: "Indigo & iris", canvas: "#252342" },
+  ] as const)("restores $name after a shared preference change without changing destination identity", ({ palette, label, name, canvas }) => {
+    const themeColour = document.createElement("meta");
+    themeColour.name = "theme-color";
+    document.head.append(themeColour);
+    localStorage.setItem(preferenceKey, "light");
+    try {
+      render(<ThemeSwitcher palette={palette} />);
+      const toggle = screen.getByRole("switch", { name: label });
+      expect(toggle.getAttribute("aria-checked")).toBe("false");
+      expect(themeColour.content).toBe("#f7f6fa");
+      fireEvent.click(toggle);
+      expect(screen.getByText(name)).toBeTruthy();
+      expect(themeColour.content).toBe(canvas);
+      expect(localStorage.getItem(preferenceKey)).toBe("navy");
+
+      act(() => window.dispatchEvent(new StorageEvent("storage", { key: preferenceKey, newValue: "light" })));
+      expect(toggle.getAttribute("aria-checked")).toBe("false");
+      expect(themeColour.content).toBe("#f7f6fa");
+      act(() => window.dispatchEvent(new StorageEvent("storage", { key: preferenceKey, newValue: "navy" })));
+      expect(screen.getByText(name)).toBeTruthy();
+      expect(themeColour.content).toBe(canvas);
+    } finally { themeColour.remove(); }
+  });
+
   it("starts in navy and preserves the original palette choice across page mounts", () => {
     const firstPage = render(<ThemeSwitcher />);
     const toggle = screen.getByRole("switch", { name: switchName });
