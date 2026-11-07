@@ -1,0 +1,57 @@
+/* Weather & UV's featured palette: the warm horizon of the reference image.
+   The shared preference still switches between featured and original light. */
+html[data-page="weather"][data-theme="navy"] {
+  --ink: #32132b;
+  --ink-soft: #513447;
+  --muted: #705260;
+  --accent: #ff542c;
+  --accent-dark: #a93228;
+  --accent-soft: #f9d7ca;
+  --lavender: #f3deda;
+  --lavender-ink: #793054;
+  --surface: #fff1e8;
+  --canvas: #210c22;
+  --border: #e6cfc7;
+  background: #210c22;
+}
+html[data-page="weather"][data-theme="navy"] .weather-dashboard {
+  background: radial-gradient(ellipse 65% 430px at 90% 5%, #d62e433b, transparent 85%), radial-gradient(ellipse 75% 600px at 12% 12%, #b3265933, transparent), #210c22;
+}
+html[data-page="weather"][data-theme="navy"] .weather-dashboard :is(.sidebar, .topbar, .collection-nav--mobile) {
+  --ink: #fff1e8;
+  --ink-soft: #f0d8db;
+  --muted: #d4b7c6;
+  --accent-dark: #ffac8d;
+  --accent-soft: #b3265938;
+  --lavender-ink: #f0d8db;
+  --surface: #35122e;
+  --border: #5c334c;
+  background: #210c22;
+  border-color: #5c334c;
+  color: #fff1e8;
+}
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .brand-mark { background: #ff754b; color: #210c22; box-shadow: 0 5px 20px #ff542c26; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .brand-mark > span { color: #210c22; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .local-clock { background: #35122e; border-color: #5c334c; color: #fff1e8; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .collection-link:hover,
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .page-section-nav > a:hover,
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .page-section-nav > a[aria-current],
+html[data-page="weather"][data-theme="navy"] .weather-dashboard :is(.menu-button, .drawer-close):hover { background: #501c40; color: #fff1e8; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .collection-link[aria-current="page"] { background: #b3265938; color: #ffac8d; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .collection-current-dot { background: #ff754b; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .intro h1 { color: #fff1e8; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .intro h1 > span { color: #ff754b; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard :is(.intro p, .intro .eyebrow) { color: #dfbbc9; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .location-picker { background: #fff1e8; border-color: #e6cfc7; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .location-picker select { color: #32132b; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .refresh-button { color: #210c22; background: #ff754b; border-color: #ff754b; box-shadow: 0 4px 16px #ff542c20; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .refresh-button:hover:not(:disabled) { background: #ff976b; border-color: #ff976b; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .wx-footer { color: #dfbbc9; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .wx-footer a { color: #fff1e8; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .menu-backdrop { background: #100713cc; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .collection-theme-swatches i { background: #561342; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .collection-theme-swatches i:nth-child(2) { background: #cc8b38; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .collection-theme-swatches i:nth-child(3) { background: #ff542c; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .collection-theme-track { background: #ff754b; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .collection-theme-track i { background: #210c22; }
+html[data-page="weather"][data-theme="navy"] ::selection { background: #ff976b; color: #210c22; }

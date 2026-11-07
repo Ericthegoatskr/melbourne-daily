@@ -20,6 +20,8 @@ The reusable theme is in `src/styles/tokens.css`; components and interaction rul
 
 Navy (`#14213D`), cream (`#F4EDE0`) and coral (`#FF6B5B`) are the default palette. Use **Colour theme** in the sidebar/mobile menu to compare the original light style. The choice persists across all five dashboards on this browser. The shared override is `src/styles/navy-theme.css`; data-state colours and all existing functions remain independent of this preference.
 
+The Weather & UV destination uses a dedicated **Sunset glow** palette with deep plum, berry, warm gold and orange. Its theme switch still restores Original light; the other destinations retain their navy palette. UV category badges and the risk scale are not recoloured by the theme.
+
 Every dashboard has the same series navigation: Home, Parking, Weather & UV, Air quality and Transport. Desktop sidebars separate those page destinations from the current page's section anchors. On mobile, a fixed five-item bottom bar provides direct switching, with space for the device safe area and the page footer. The bottom bar hides while the navigation drawer is open; the drawer traps keyboard focus, closes with Escape and restores focus to its menu button. The current dashboard is identified with `aria-current="page"`.
 
 ## Available without credentials

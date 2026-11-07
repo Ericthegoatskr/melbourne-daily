@@ -1,0 +1,99 @@
+/* Weather / UV only: plum, berry, amber and sunset orange.
+   Decorative colours never replace the UV risk scale or source-status badges. */
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .wx-grid > .card,
+html[data-page="weather"][data-theme="navy"] .wx-sources,
+html[data-page="weather"][data-theme="navy"] .wx-source-pill {
+  --ink: #32132b;
+  --ink-soft: #533547;
+  --muted: #705260;
+  --accent-dark: #a43630;
+  --lavender-ink: #7d2853;
+  --border: #e3cdd0;
+  background: #fff1e8;
+  color: #32132b;
+  border-color: #e3cdd0;
+}
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .wx-grid > .card:hover { border-color: #cca3ad; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .card.wx-current-card {
+  background: radial-gradient(ellipse at 95% 12%, #e7ad6d26, transparent 62%), #fff1e8;
+}
+html[data-page="weather"][data-theme="navy"] .wx-source-pill > svg { color: #a43630; }
+html[data-page="weather"][data-theme="navy"] .wx-source-pill:nth-child(2) > svg { color: #8a2858; }
+html[data-page="weather"][data-theme="navy"] .wx-metric {
+  background: #f2dfd9;
+  border-color: #e3c9c7;
+  color: #533547;
+}
+html[data-page="weather"][data-theme="navy"] :is(.wx-metric > svg, .wx-temperature > small) { color: #855244; }
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .card-footer { border-color: #e3cdd0; }
+
+/* The UV observation is the page's dark feature surface. */
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .wx-grid > .wx-uv-card {
+  --ink: #fff1e8;
+  --ink-soft: #f4dedb;
+  --muted: #e0c4c8;
+  --accent-dark: #ffb497;
+  --lavender-ink: #f2bc78;
+  --border: #875063;
+  color-scheme: dark;
+  color: #fff1e8;
+  background: radial-gradient(ellipse 90% 65% at 100% 100%, #d25d3024, transparent 78%), radial-gradient(ellipse at 100% 5%, #8a205333, transparent 75%), linear-gradient(155deg, #451138, #291028);
+  border-color: #875063;
+  box-shadow: 0 10px 34px #18071335;
+}
+html[data-page="weather"][data-theme="navy"] .weather-dashboard .wx-grid > .wx-uv-card:hover { border-color: #b77385; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card :is(.card-title, .card-title > svg, .wx-uv-reading > .value-change) { color: #fff1e8; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card .wx-panel-kicker { color: #f2bc78; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card :is(.wx-panel-note, .wx-uv-meter-labels, .wx-uv-model-empty, .wx-uv-forecast-heading, .wx-uv-chart-times, .wx-uv-model-source, .empty-state, .source-time) { color: #e0c4c8; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card :is(.wx-uv-model, .card-footer) { border-color: #875063; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card .card-footer > a { color: #ffd0ab; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card :is(.warning-text, .refresh-warning) { color: #f6ca8a; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card .text-button { background: #fff1e8; border-color: #d7a8a8; color: #561342; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card .text-button:hover { background: #f6d2c5; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card :focus-visible { outline-color: #ffd0ab; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card .wx-uv-pointer { background: #210c22; border-color: #fff1e8; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card .wx-uv-bar { fill: #e4a454; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card .wx-uv-zero { stroke: #e4a454; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card .wx-uv-baseline { stroke: #875063; }
+html[data-page="weather"][data-theme="navy"] .wx-uv-card .wx-uv-missing { stroke: #d9bfc9; }
+
+/* Orange temperature and berry rain stay distinguishable on pale rose. */
+html[data-page="weather"][data-theme="navy"] :is(.forecast-chart-legend, .forecast-scrubber, .forecast-empty, .forecast-hour-button) { color: #705260; }
+html[data-page="weather"][data-theme="navy"] .forecast-temperature-key { background: #ba3d2c; }
+html[data-page="weather"][data-theme="navy"] .forecast-rain-key { background: #9b3d6b; }
+html[data-page="weather"][data-theme="navy"] .forecast-selected { background: #fff9f3; border-color: #e3cdd0; color: #705260; }
+html[data-page="weather"][data-theme="navy"] .forecast-selected strong { color: #a43630; }
+html[data-page="weather"][data-theme="navy"] :is(.forecast-selected > span, .forecast-hour-button > span) { color: #7d2853; }
+html[data-page="weather"][data-theme="navy"] .forecast-gridline line { stroke: #dec4c9; }
+html[data-page="weather"][data-theme="navy"] :is(.forecast-gridline text, .forecast-time-tick) { fill: #705260; }
+html[data-page="weather"][data-theme="navy"] .forecast-rain-bar { fill: #9b3d6b; }
+html[data-page="weather"][data-theme="navy"] .forecast-temperature-line { stroke: #ba3d2c; }
+html[data-page="weather"][data-theme="navy"] .forecast-cursor { stroke: #a43630; }
+html[data-page="weather"][data-theme="navy"] .forecast-point-halo { fill: #ff542c; }
+html[data-page="weather"][data-theme="navy"] .forecast-point { fill: #ba3d2c; stroke: #fff1e8; }
+html[data-page="weather"][data-theme="navy"] .forecast-scrubber input { accent-color: #ba3d2c; }
+html[data-page="weather"][data-theme="navy"] .forecast-scrubber input::-webkit-slider-runnable-track { background: #d4a6a6; }
+html[data-page="weather"][data-theme="navy"] .forecast-scrubber input::-moz-range-track { background: #d4a6a6; }
+html[data-page="weather"][data-theme="navy"] .forecast-scrubber input::-webkit-slider-thumb { background: #ba3d2c; border-color: #fff1e8; box-shadow: 0 0 0 1px #a43630; }
+html[data-page="weather"][data-theme="navy"] .forecast-scrubber input::-moz-range-thumb { background: #ba3d2c; border-color: #fff1e8; box-shadow: 0 0 0 1px #a43630; }
+html[data-page="weather"][data-theme="navy"] .forecast-hours-scroll { scrollbar-color: #c697a1 transparent; }
+html[data-page="weather"][data-theme="navy"] .forecast-hour-button > svg { color: #855244; }
+html[data-page="weather"][data-theme="navy"] .forecast-hour-button strong { color: #32132b; }
+html[data-page="weather"][data-theme="navy"] .forecast-hour-button:hover { background: #f2dfd9; }
+html[data-page="weather"][data-theme="navy"] .forecast-hour-button.is-selected { background: #f6d2c5; border-color: #c28a80; color: #a43630; }
+html[data-page="weather"][data-theme="navy"] .forecast-hour-button.is-selected strong { color: #a43630; }
+html[data-page="weather"][data-theme="navy"] .segmented { background: #f0dcd8; border-color: #dfbfc4; }
+html[data-page="weather"][data-theme="navy"] .segmented button { color: #705260; }
+html[data-page="weather"][data-theme="navy"] .segmented button[aria-pressed="true"] { background: #561342; color: #fff1e8; }
+
+/* The daylight diagram retains its actual elapsed-time geometry. */
+html[data-page="weather"][data-theme="navy"] .wx-daylight-track { stroke: #d4b9bf; }
+html[data-page="weather"][data-theme="navy"] .wx-daylight-progress { stroke: #b36b26; }
+html[data-page="weather"][data-theme="navy"] .wx-daylight-horizon { stroke: #d4b9bf; }
+html[data-page="weather"][data-theme="navy"] .wx-daylight-end { fill: #fff9f3; stroke: #b88896; }
+html[data-page="weather"][data-theme="navy"] .wx-daylight-marker > circle { fill: #f8dfad; stroke: #ba8436; }
+html[data-page="weather"][data-theme="navy"] .wx-daylight-marker > svg { color: #87521f; }
+html[data-page="weather"][data-theme="navy"] .wx-daylight-marker.is-night > circle { fill: #ead2df; stroke: #b27c9f; }
+html[data-page="weather"][data-theme="navy"] .wx-daylight-marker.is-night > svg { color: #6a2459; }
+html[data-page="weather"][data-theme="navy"] .wx-daylight-times > div { color: #91512b; }
+html[data-page="weather"][data-theme="navy"] .wx-daylight-phase { background: #f4dfd2; border-color: #d5b79c; color: #754825; }

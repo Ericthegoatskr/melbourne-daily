@@ -89,4 +89,37 @@ describe("collection palette preference", () => {
     expect(screen.getByRole("switch", { name: switchName }).getAttribute("aria-checked"))
       .toBe("true");
   });
+
+  it("uses the weather palette without changing the shared preference or other pages", () => {
+    const themeColour = document.createElement("meta");
+    themeColour.name = "theme-color";
+    document.head.append(themeColour);
+    try {
+      const weatherPage = render(<ThemeSwitcher palette="sunset" />);
+      const toggle = screen.getByRole("switch", { name: "Sunset colour theme" });
+      expect(toggle.getAttribute("aria-checked")).toBe("true");
+      expect(screen.getByText("Sunset glow")).toBeTruthy();
+      expect(themeColour.content).toBe("#210c22");
+
+      fireEvent.click(toggle);
+      expect(screen.getByText("Original light")).toBeTruthy();
+      expect(themeColour.content).toBe("#f7f6fa");
+      expect(localStorage.getItem(preferenceKey)).toBe("light");
+
+      fireEvent.click(toggle);
+      expect(screen.getByText("Sunset glow")).toBeTruthy();
+      expect(themeColour.content).toBe("#210c22");
+      expect(document.documentElement.dataset.theme).toBe("navy");
+      expect(localStorage.getItem(preferenceKey)).toBe("navy");
+
+      weatherPage.unmount();
+      render(<ThemeSwitcher />);
+      expect(screen.getByRole("switch", { name: switchName }).getAttribute("aria-checked"))
+        .toBe("true");
+      expect(screen.getByText("Navy & coral")).toBeTruthy();
+      expect(themeColour.content).toBe("#14213D");
+    } finally {
+      themeColour.remove();
+    }
+  });
 });
