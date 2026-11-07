@@ -115,6 +115,7 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 async function openApp() {
@@ -128,6 +129,7 @@ async function openApp() {
 describe("dashboard interactions and data honesty", () => {
   it("uses Australian English in document metadata, visible content and accessible labels", async () => {
     const { container } = await openApp();
+    expect(within(screen.getByRole("navigation", { name: "Dashboard series" })).getByRole("link", { name: "Home", current: "page" })).toBeTruthy();
     expect(entryHtml).toMatch(/<html lang="en-AU">/);
     expect(
       screen.getByRole("heading", {
@@ -282,10 +284,13 @@ describe("dashboard interactions and data honesty", () => {
   });
 
   it("keeps keyboard focus inside the open navigation and restores focus when Escape closes it", async () => {
+    vi.stubGlobal("innerWidth", 375);
+    vi.spyOn(HTMLElement.prototype, "getClientRects").mockReturnValue([{ width: 120, height: 44 }] as unknown as DOMRectList);
     await openApp();
     const menuButton = screen.getByRole("button", { name: "Open menu" });
     menuButton.focus();
     fireEvent.click(menuButton);
+    await act(async () => { await vi.advanceTimersByTimeAsync(300); });
     const drawer = screen.getByRole("dialog", { name: "Main navigation" });
     const closeButton = within(drawer).getByRole("button", {
       name: "Close navigation",

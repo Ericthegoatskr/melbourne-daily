@@ -81,6 +81,7 @@ async function choose(query: string, name: RegExp) {
 describe("dedicated transport dashboard", () => {
   it("keeps both live panels awaiting activation without requesting a transit service", async () => {
     await openTransport();
+    expect(within(screen.getByRole("navigation", { name: "Dashboard series" })).getByRole("link", { name: "Transport", current: "page" })).toBeTruthy();
     expect(screen.getByRole("heading", { level: 1, name: "A little less rush." })).toBeTruthy();
     expect(departures().getByText("Awaiting activation", { exact: true })).toBeTruthy();
     expect(updates().getByText("Awaiting activation", { exact: true })).toBeTruthy();

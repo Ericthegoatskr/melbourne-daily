@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import CollectionNav from "./components/CollectionNav";
+import { useNavigationDrawer } from "./lib/useNavigationDrawer";
 import {
   ArrowUpRight,
   Bookmark,
@@ -102,36 +104,7 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const sidebar = useRef<HTMLElement>(null);
-  useEffect(() => {
-    if (!menuOpen) return;
-    const focusable = () =>
-      Array.from(
-        sidebar.current?.querySelectorAll<HTMLElement>(
-          "a[href], button:not([disabled])",
-        ) || [],
-      );
-    focusable()[0]?.focus();
-    const keyboard = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setMenuOpen(false);
-        menuButton.current?.focus();
-      }
-      if (event.key === "Tab") {
-        const items = focusable();
-        const first = items[0],
-          last = items.at(-1);
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last?.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first?.focus();
-        }
-      }
-    };
-    document.addEventListener("keydown", keyboard);
-    return () => document.removeEventListener("keydown", keyboard);
-  }, [menuOpen]);
+  useNavigationDrawer({ open: menuOpen, onClose: closeMenu, sidebar, trigger: menuButton });
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
       const value: unknown = JSON.parse(
@@ -218,7 +191,7 @@ export default function App() {
   }
   function navigate(id: string) {
     setActive(id);
-    setMenuOpen(false);
+    if (menuOpen) closeMenu();
   }
   function closeMenu() {
     setMenuOpen(false);
@@ -234,6 +207,7 @@ export default function App() {
         <div className="menu-backdrop" aria-hidden="true" onClick={closeMenu} />
       )}
       <aside
+        id="main-navigation"
         ref={sidebar}
         role={menuOpen ? "dialog" : undefined}
         aria-modal={menuOpen ? true : undefined}
@@ -264,8 +238,9 @@ export default function App() {
             </span>
           </span>
         </a>
-        <span className="sidebar-label">YOUR CITY. YOUR EVERYDAY.</span>
-        <nav>
+        <CollectionNav current="home" placement="sidebar" onNavigate={closeMenu} />
+        <span className="sidebar-label">On this page</span>
+        <nav className="page-section-nav" aria-label="On this page">
           {navItems.map((item) => (
             <a
               key={item.id}
@@ -280,18 +255,6 @@ export default function App() {
             </a>
           ))}
         </nav>
-        <div className="sidebar-note">
-          <span className="small-sun">
-            <Sun size={23} />
-          </span>
-          <strong>A little more local.</strong>
-          <p>
-            A few useful things,
-            <br />
-            before you head out.
-          </p>
-          <span>MADE FOR MELBOURNE ↗</span>
-        </div>
         <div className="sidebar-bottom">
           <a href="#sources" onClick={() => navigate("sources")}>
             <Database size={17} />
@@ -309,6 +272,7 @@ export default function App() {
               ref={menuButton}
               className="menu-button icon-button"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-controls="main-navigation"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(!menuOpen)}
             >
@@ -1115,6 +1079,7 @@ export default function App() {
           </footer>
         </main>
       </div>
+      <CollectionNav current="home" placement="mobile" onNavigate={closeMenu} hidden={menuOpen} />
     </div>
   );
 }

@@ -18,6 +18,8 @@ The [PTV transport dashboard](https://ericthegoatskr.github.io/melbourne-daily/t
 
 The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). The homepage, weather, air-quality and transport pages and separate Parking Dashboard use the same collection style. Dedicated layout rules are scoped in `src/WeatherDashboard.css`, `src/AirDashboard.css` and `src/TransportDashboard.css`.
 
+Every dashboard has the same series navigation: Home, Parking, Weather & UV, Air quality and Transport. Desktop sidebars separate those page destinations from the current page's section anchors. On mobile, a fixed five-item bottom bar provides direct switching, with space for the device safe area and the page footer. The bottom bar hides while the navigation drawer is open; the drawer traps keyboard focus, closes with Escape and restores focus to its menu button. The current dashboard is identified with `aria-current="page"`.
+
 ## Available without credentials
 
 - A shared suburb selector, modeled current weather, a 24-hour forecast and a three-day outlook.
@@ -61,6 +63,8 @@ npm run preview
 
 Verification runs the tests, TypeScript checking and production builds. Preview serves the frontend production bundle.
 
+For collection-navigation changes, test all five destinations from each page, current-page highlighting, same-tab navigation and browser Back. Check desktop and narrow mobile layouts, drawer keyboard focus, Escape, scroll locking and resizing back to desktop. Confirm the mobile bar does not cover content, parking-map controls or the footer. The Daily and Parking repositories carry the same navigation contract; update and deploy both when changing it.
+
 For weather-page changes, also inspect desktop and narrow mobile layouts in the production preview. Check suburb switching, hourly/daily forecast controls, keyboard hour selection, mobile navigation, independent weather/UV failures and expiry. Verify that a valid observed UV of zero remains visible, while missing hourly UV stays unavailable.
 
 For air-quality changes, check desktop and narrow mobile layouts, station search and selection, “Use nearest station”, and the fallback when a selected station stops reporting. Exercise partial missing fields, valid zero readings, delayed and expired observations, and a newer snapshot withdrawing a previously displayed category or measurement. EPA and regional-model failures must remain independent. Confirm the published frontend reads the public snapshot and contains no provider key or private-backend access token.
@@ -92,6 +96,8 @@ src/components/WeatherUVPanel.tsx Observed UV, model UV chart and daylight panel
 src/components/AirReadings.tsx EPA category, pollutant and regional-model cards
 src/styles/tokens.css          Collection colour, surface and motion tokens
 src/components/CommutePanel.tsx Shared stop search, favourites, departures and updates
+src/components/CollectionNav.tsx Shared series links and mobile page switching
+src/lib/useNavigationDrawer.ts Shared drawer focus, scroll lock and breakpoint cleanup
 src/components/EpaPanel.tsx     Nearby station observations and unavailable state
 src/lib/                       Feed validation, location matching and freshness
 shared/                        Explicit frontend/backend data contracts

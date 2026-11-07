@@ -78,6 +78,7 @@ async function openWeather() {
 describe("dedicated weather dashboard data and interactions", () => {
   it("keeps measured UV zero separate from model forecasts and requests only its own feeds", async () => {
     await openWeather();
+    expect(within(screen.getByRole("navigation", { name: "Dashboard series" })).getByRole("link", { name: "Weather & UV", current: "page" })).toBeTruthy();
     expect(screen.getByRole("heading", { level: 1, name: "Weather for your Melbourne day." })).toBeTruthy();
     const weather = within(screen.getByRole("region", { name: "Current weather" }));
     const uv = within(screen.getByRole("region", { name: "UV index" }));

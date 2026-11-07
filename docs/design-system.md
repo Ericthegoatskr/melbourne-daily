@@ -8,6 +8,14 @@ Use warm white surfaces, dark ink, orange actions, and small lavender, mint and 
 
 Theme variables are defined in `src/styles/tokens.css` and consumed by `src/styles.css`. Weather-page layout rules live in `src/WeatherDashboard.css`, scoped to `.weather-dashboard` and `wx-` classes so they do not change the homepage. Air-quality layout rules live in `src/AirDashboard.css`, scoped to `.air-dashboard` and `aq-` classes. The weather page reuses `Forecast`, `WeatherScene`, `ValueChange` and the existing feed adapters; the air-quality page reuses the EPA contract, per-field expiry and regional-model adapter. A later dashboard can reuse these tokens without inheriting the entrance page's layout. Keep data adapters independent of presentation.
 
+## Collection navigation
+
+Use the same five destinations in this order: Home, Parking, Weather & UV, Air quality and Transport. `CollectionNav` supplies the series navigation on every page. Page destinations are normal same-tab links; `aria-current="page"` marks the current dashboard. Existing section anchors remain separate under “On this page” and use `aria-current="location"` when selected.
+
+Desktop sidebars show the series links before the compact section list. At mobile widths, the five destinations also appear in a fixed bottom bar with short visible labels and full accessible names. Keep each target comfortably touchable, allow for the device safe area and reserve enough page space so the bar cannot cover the footer or parking-map controls. Hide the bottom bar while the modal navigation drawer is open.
+
+All Daily pages share `useNavigationDrawer` for scroll locking, initial focus, Tab wrapping, Escape dismissal and closing on a return to desktop width. The Parking application follows the same behavior. The two repositories keep compatible component markup, link order and styles; a navigation change must be checked and deployed in both applications. Links use the fixed root-relative GitHub Pages paths under `/melbourne-daily/` and `/melbourne-parking-dashboard/`, so both production builds can also be tested together on one local origin.
+
 ## Interaction and motion
 
 - Summary cards link to the corresponding section and share the same freshness checks as the detailed card. A missing or expired reading remains unavailable.
@@ -38,5 +46,7 @@ The redesign changes presentation, forecast interaction and EPA station browsing
 The EPA provider key remains a backend Secret. GitHub Actions uses its separate `EPA_BACKEND_TOKEN` Secret to collect and validate data from the owner-private backend, then publishes the snapshot consumed by the browser. The new page preserves that boundary and does not change backend access or expose either credential.
 
 Run `npm run verify`, then inspect all page entries in the production build at desktop and narrow mobile sizes with actual data. Check hourly/daily switching, keyboard forecast selection, suburb switching, mobile navigation, source failures and expiry. For the weather page, also check valid observed UV zero, missing model UV, Melbourne-midnight rollover and the sunrise/sunset diagram. For the air-quality page, check station search, manual selection and nearest-station reset, selected-station fallback, partial missing fields, valid zero, per-field expiry and withdrawal by a newer snapshot. Confirm the public build contains no provider key or backend access credential. Production publication continues through the existing GitHub Pages workflow; do not move any provider secret into browser configuration for a visual change.
+
+For navigation, verify every series link on all five pages, same-tab transitions, browser Back and current-page highlighting. Test 320 px mobile layouts, the open drawer's focus trap, Escape, background scroll lock and resize cleanup. Check that the bottom bar clears the last content and parking-map controls, and that it stays out of the open drawer's keyboard order.
 
 For transport, verify the deployed pending state, real directory search, saved-stop restoration and official links. Confirm no live transit request is made before activation. Use local-only fixtures to check live/scheduled distinctions, cancellations, selected-stop changes, service-update details and shared expiry; never publish fixture departures. A successful visual release does not establish that the live PTV connection has been activated or verified.

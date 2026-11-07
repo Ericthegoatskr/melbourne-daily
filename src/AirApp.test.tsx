@@ -74,6 +74,7 @@ async function refresh() {
 describe("dedicated EPA air dashboard data and interactions", () => {
   it("keeps measured zero, missing pollutants and the regional model separate", async () => {
     await openAir();
+    expect(within(screen.getByRole("navigation", { name: "Dashboard series" })).getByRole("link", { name: "Air quality", current: "page" })).toBeTruthy();
     expect(screen.getByRole("heading", { level: 1, name: "Air quality, closer to home." })).toBeTruthy();
     expect(status().getByText("Good", { exact: true })).toBeTruthy();
     expect(pm25().getByText("0.0", { exact: true })).toBeTruthy();

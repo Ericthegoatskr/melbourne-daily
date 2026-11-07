@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import CollectionNav from "./components/CollectionNav";
+import { useNavigationDrawer } from "./lib/useNavigationDrawer";
 import {
   ArrowUpRight, ChevronDown, CloudSun, Database, LayoutGrid, LocateFixed,
   MapPin, Menu, RadioTower, RefreshCw, Search, ShieldCheck, Wind, X,
@@ -74,60 +76,27 @@ export default function AirApp() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!menuOpen) return;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const items = () => Array.from(sidebar.current?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") || [])
-      .filter((element) => element.getClientRects().length > 0);
-    const focusFrame = requestAnimationFrame(() => items()[0]?.focus());
-    const focusAfterReveal = setTimeout(() => {
-      if (!sidebar.current?.contains(document.activeElement)) items()[0]?.focus();
-    }, 260);
-    const resize = () => { if (window.innerWidth > 760) setMenuOpen(false); };
-    const keyboard = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { setMenuOpen(false); menuButton.current?.focus(); }
-      if (event.key !== "Tab") return;
-      const first = items()[0], last = items().at(-1);
-      if (!sidebar.current?.contains(document.activeElement)) {
-        event.preventDefault(); (event.shiftKey ? last : first)?.focus();
-      } else if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault(); last?.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault(); first?.focus();
-      }
-    };
-    window.addEventListener("resize", resize);
-    document.addEventListener("keydown", keyboard);
-    return () => {
-      cancelAnimationFrame(focusFrame);
-      clearTimeout(focusAfterReveal);
-      document.body.style.overflow = overflow;
-      window.removeEventListener("resize", resize);
-      document.removeEventListener("keydown", keyboard);
-    };
-  }, [menuOpen]);
   const closeMenu = () => { setMenuOpen(false); menuButton.current?.focus(); };
+  useNavigationDrawer({ open: menuOpen, onClose: closeMenu, sidebar, trigger: menuButton });
   const navigate = (id: string) => { setActive(id); if (menuOpen) closeMenu(); };
 
   return (
     <div className="app-shell air-dashboard">
       <a className="skip-link" href="#main">Skip to content</a>
       {menuOpen && <div className="menu-backdrop" aria-hidden="true" onClick={closeMenu} />}
-      <aside ref={sidebar} className={`sidebar ${menuOpen ? "is-open" : ""}`} aria-label="Main navigation" role={menuOpen ? "dialog" : undefined} aria-modal={menuOpen ? true : undefined}>
+      <aside id="main-navigation" ref={sidebar} className={`sidebar ${menuOpen ? "is-open" : ""}`} aria-label="Main navigation" role={menuOpen ? "dialog" : undefined} aria-modal={menuOpen ? true : undefined}>
         {menuOpen && <button className="drawer-close icon-button" aria-label="Close navigation" onClick={closeMenu}><X size={19} /></button>}
         <a className="brand" href="#overview" onClick={() => navigate("overview")}><span className="brand-mark">m<span>.</span></span><span>melbourne<span>air<span className="brand-period">.</span></span></span></a>
-        <span className="sidebar-label">A LITTLE MORE AWARE.</span>
-        <nav>{navItems.map(({ id, label, Icon }) => <a key={id} href={`#${id}`} className={active === id ? "active" : ""} aria-current={active === id ? "location" : undefined} onClick={() => navigate(id)}><Icon size={19} strokeWidth={1.7} aria-hidden /><span>{label}</span>{active === id && <span className="nav-dot" />}</a>)}</nav>
-        <div className="sidebar-note"><span className="small-sun"><Wind size={23} aria-hidden /></span><strong>A closer look at the air.</strong><p>Local observations.<br />A wider perspective.</p><span>MADE FOR MELBOURNE ↗</span></div>
+        <CollectionNav current="air" placement="sidebar" onNavigate={closeMenu} />
+        <span className="sidebar-label">On this page</span>
+        <nav className="page-section-nav" aria-label="On this page">{navItems.map(({ id, label, Icon }) => <a key={id} href={`#${id}`} className={active === id ? "active" : ""} aria-current={active === id ? "location" : undefined} onClick={() => navigate(id)}><Icon size={19} strokeWidth={1.7} aria-hidden /><span>{label}</span>{active === id && <span className="nav-dot" />}</a>)}</nav>
         <div className="sidebar-bottom">
-          <a href={DAILY_URL}><LayoutGrid size={17} aria-hidden />Melbourne Daily<ArrowUpRight size={14} aria-hidden /></a>
-          <a href={`${DAILY_URL}weather.html`}><CloudSun size={17} aria-hidden />Weather & UV<ArrowUpRight size={14} aria-hidden /></a>
+          <ExternalLink href="https://github.com/Ericthegoatskr/melbourne-daily">View on GitHub</ExternalLink>
           <span className="version">THE MELBOURNE COLLECTION</span>
         </div>
       </aside>
       <div className="main-shell">
-        <header className="topbar"><div className="topbar-left"><button ref={menuButton} className="menu-button icon-button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button><span className="breadcrumb">Your city, at a glance <span>/</span> <strong>Air quality</strong></span></div><div className="topbar-right"><span className="local-clock">MEL {melbourneTime(now)}</span><a className="original-link" href={DAILY_URL}>Melbourne Daily<ArrowUpRight size={14} aria-hidden /></a></div></header>
+        <header className="topbar"><div className="topbar-left"><button ref={menuButton} className="menu-button icon-button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button><span className="breadcrumb">Your city, at a glance <span>/</span> <strong>Air quality</strong></span></div><div className="topbar-right"><span className="local-clock">MEL {melbourneTime(now)}</span><a className="original-link" href={DAILY_URL}>Melbourne Daily<ArrowUpRight size={14} aria-hidden /></a></div></header>
         <main id="main">
           <section className="intro" id="overview">
             <div><div className="eyebrow"><span />{date} · MELBOURNE</div><h1>Air quality, closer to home<span>.</span></h1><p>Station observations, with their source and time in view.</p></div>
@@ -160,6 +129,7 @@ export default function AirApp() {
           <footer className="aq-footer"><a href={DAILY_URL}><LayoutGrid size={15} aria-hidden />Back to Melbourne Daily<ArrowUpRight size={14} aria-hidden /></a><a href={`${DAILY_URL}weather.html`}><CloudSun size={15} aria-hidden />Weather & UV<ArrowUpRight size={14} aria-hidden /></a><ExternalLink href="https://github.com/Ericthegoatskr/melbourne-daily">View on GitHub</ExternalLink><span>THE MELBOURNE COLLECTION</span></footer>
         </main>
       </div>
+      <CollectionNav current="air" placement="mobile" onNavigate={closeMenu} hidden={menuOpen} />
     </div>
   );
 }
