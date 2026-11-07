@@ -4,7 +4,7 @@ An English-language dashboard for everyday Melbourne: weather, UV, parking, regi
 
 [Dashboard](https://ericthegoatskr.github.io/melbourne-daily/) · [Full parking dashboard](https://ericthegoatskr.github.io/melbourne-parking-dashboard/) · [Data sources](docs/data-sources.md) · [Release checklist](docs/remaining-scope.md)
 
-GitHub Pages serves the revision from the latest successful deployment. The frontend works without provider credentials. Embedded PTV departures and EPA station observations are implemented and tested, but **are not activated on the public frontend yet**. Live EPA categories and hourly PM2.5/PM10 readings have been verified through the private backend. PTV credentials remain pending.
+GitHub Pages serves the revision from the latest successful deployment. **EPA station observations are live on the public homepage** through a validated JSON snapshot, with provider credentials kept out of the browser. PTV departures are implemented but remain unavailable until their credentials are configured.
 
 ## Available without credentials
 
@@ -18,13 +18,13 @@ GitHub Pages serves the revision from the latest successful deployment. The fron
 
 The initial directory contains 2,165 boarding-point records, including individual platforms and opposite-side tram stops. It is a location directory, not a live timetable. A weekly update workflow refreshes it from the official source; stop counts can change.
 
-## Implemented, awaiting public activation
+## EPA observations and transport status
 
 The transit board supports route/direction selection, separate direction favourites, up to five departures, live estimates versus scheduled times, cancellations and service updates. Direction choices come from an authorised PTV response; without that response, a local favourite keeps the stop with all directions.
 
 The EPA panel supports the nearest eligible monitoring station within 100 km of the chosen suburb, station distance, the provider's category, available hourly PM2.5/PM10 readings and each reading's timestamp. Model estimates remain a separate source. Missing or stale observations never become a “Good” category.
 
-The EPA subscription key is stored as a backend Secret, and its `X-API-Key` authentication header is confirmed. On 7 November 2026, the private backend returned 93 station records, including current categories and hourly pollutant readings where available; an Alphington sample matched EPA's public website. The prepared GitHub Actions collector will publish a validated EPA JSON snapshot through Pages while the Sites backend stays owner-private. Activation awaits authorisation to store its service-access credential as the `EPA_BACKEND_TOKEN` Actions Secret, setting `VITE_EPA_DATA_URL`, and publication checks. No snapshot has been published yet. PTV credentials remain pending and `VITE_DATA_API_URL` remains unset. See the [backend verification record and release gates](docs/backend.md).
+The EPA subscription key stays in Sites as a Secret. GitHub Actions uses a separately authorised `EPA_BACKEND_TOKEN` Secret to collect validated station data from the owner-private backend and publish the [public JSON snapshot](https://ericthegoatskr.github.io/melbourne-daily/data/epa-observations.json). At 17:16 AEDT on 7 November 2026, anonymous page and snapshot requests succeeded, and the public browser displayed current EPA categories and pollutant readings. `VITE_EPA_DATA_URL` points to the snapshot; `VITE_DATA_API_URL` remains unset, keeping unconfigured PTV polling off. See the [backend verification record](docs/backend.md).
 
 ## Run locally
 
@@ -52,7 +52,7 @@ The repository is `Ericthegoatskr/melbourne-daily`, with Vite's base path set to
 
 Scheduled runs are best effort and can be delayed or disabled for an inactive public repository. A failed collection preserves the last committed directory. Check both the refresh run and the subsequent Pages deployment; a successful commit alone does not publish the update. See [directory maintenance](docs/transit-directory.md).
 
-Live public feeds are requested in the browser. The prepared EPA snapshot workflow uses a separate 15-minute schedule; it is not yet activated. The weekly stop job maintains metadata and does not collect minute-by-minute transit predictions.
+Live public feeds are requested in the browser. The EPA snapshot workflow is configured on a separate 15-minute schedule, with the same best-effort scheduling limits. The weekly stop job maintains metadata and does not collect minute-by-minute transit predictions.
 
 ## Project layout
 
@@ -74,7 +74,7 @@ The sibling `melbourne-daily-api` directory is generated Sites hosting scaffoldi
 
 ## Data and privacy
 
-Suburb selection, saved stops/directions and pinned shortcuts stay in this browser's local storage. There is no account system or cross-device sync. Public feeds are requested from their providers. With the prepared EPA snapshot path, the browser downloads public station data and selects its nearest station locally, sending no location query or credential to the private backend. The EPA provider key stays in Sites; the proposed Actions service-access credential is separate and awaits authorisation. A future transport connection would send selected stop queries to its backend.
+Suburb selection, saved stops/directions and pinned shortcuts stay in this browser's local storage. There is no account system or cross-device sync. Public feeds are requested from their providers. For EPA, the browser downloads public station data and selects its nearest station locally, sending no location query or credential to the private backend. The EPA provider key stays in Sites; the separate service-access credential is stored only as an Actions Secret. A future transport connection would send selected stop queries to its backend.
 
 Open-Meteo's free API is for non-commercial use. Data credit includes Open-Meteo, CAMS / Copernicus Atmosphere Monitoring Service and City of Melbourne. Transport data is licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence. **UV observations courtesy of ARPANSA.** Read the [ARPANSA UV data disclaimer](https://www.arpansa.gov.au/our-services/monitoring/ultraviolet-radiation-monitoring/ultraviolet-radation-data-information#Disclaimer).
 

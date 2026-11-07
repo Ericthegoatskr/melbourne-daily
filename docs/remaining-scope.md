@@ -2,7 +2,7 @@
 
 Audit baseline: `31d986e928271506631580dc5d49c6fe4fc9206c`, updated on 7 November 2026 (Australia/Melbourne). This separates implemented/tested behavior from the remaining production gates. A checked implementation item is not proof of authorised live provider access. The current release keeps `VITE_DATA_API_URL` unset: the Sites backend is owner-private. `EPA_API_KEY` is configured as a Secret and its authentication header is confirmed; PTV credentials remain unavailable.
 
-Baseline local verification: 126 tests passed, frontend production and API bundle builds passed, train/tram search and browser-local favourites worked in a real browser, and 390 px / 1,440 px layouts had no horizontal overflow or console errors. The EPA backend release subsequently passed 202 tests, TypeScript checking and frontend/API builds, plus live private-backend checks for EPA categories and hourly PM2.5/PM10. The prepared Pages snapshot path later passed 223 tests and builds, a real local collection and local browser checks. Actions Secret authorisation, snapshot publication and production browser verification remain pending. The final Pages deployment result must be checked separately after publication.
+Baseline local verification: 126 tests passed, frontend production and API bundle builds passed, train/tram search and browser-local favourites worked in a real browser, and 390 px / 1,440 px layouts had no horizontal overflow or console errors. The EPA backend release subsequently passed 202 tests and live private-backend checks. The Pages snapshot release passed 223 tests, builds and authorised collection in [Actions run 42346099479](https://github.com/Ericthegoatskr/melbourne-daily/actions/runs/42346099479) for commit `08b7babccca1414978588ddc6f8cee1ad602dd2a`. At 17:16 AEDT on 7 November 2026, anonymous page/JSON requests and production browser checks passed. PTV access remains pending.
 
 ## Already delivered in the baseline
 
@@ -40,7 +40,7 @@ The [weekly refresh workflow](../.github/workflows/refresh-transit-stops.yml) ru
 
 Every saved directory stop must preserve `idScheme: "gtfs"`. The official [PTV v3 Swagger definition](https://timetableapi.ptv.vic.gov.au/swagger/docs/v3) documents the `gtfs=true` option on departures requests to accept a GTFS stop identifier. It does not establish that PTV route/direction identifiers equal static GTFS route/direction identifiers. API-derived selections must retain their own identifier scheme, and any response association must be validated with authorised live requests. The directory enables genuine stop search and local favourites without a key; it does not supply live departures or disruptions by itself.
 
-## EPA station observations: private backend verified, public activation pending
+## EPA station observations: public snapshot verified, backend private
 
 - [x] Implement authoritative metadata parsing, including stable station identifiers and verified coordinate order, against the published schema.
 - [x] Select an eligible station within 100 km of the chosen suburb and display its name/distance.
@@ -52,10 +52,10 @@ Every saved directory stop must preserve `idScheme: "gtfs"`. The official [PTV v
 - [x] Configure `EPA_API_KEY` as a Sites Secret, confirm `X-API-Key` authentication and redeploy the owner-private backend with environment revision 3.
 - [x] Verify actual authorised payloads and deployed private-backend requests for station metadata, categories and hourly PM2.5/PM10.
 - [x] Prepare and locally verify the Actions collector and public JSON client while keeping the Sites backend private.
-- [ ] Authorise and configure `EPA_BACKEND_TOKEN` as an Actions Secret in `Ericthegoatskr/melbourne-daily`.
-- [ ] Set `VITE_EPA_DATA_URL`, publish the validated JSON snapshot through Pages and verify the EPA panel in the production browser.
+- [x] Authorise and configure `EPA_BACKEND_TOKEN` as an Actions Secret in `Ericthegoatskr/melbourne-daily`.
+- [x] Set `VITE_EPA_DATA_URL`, publish the validated JSON snapshot through Pages and verify the EPA panel in the production browser.
 
-The owner has subscribed through the [EPA developer portal](https://portal.api.epa.vic.gov.au/) and entered the key directly in Sites settings. The implementation uses the official Environment Monitoring API schema linked through [DataVic](https://discover.data.vic.gov.au/dataset/environment-monitoring-api), validated with fixtures and observed production differences. At 16:32 AEDT on 7 November 2026, an authorised private-backend request returned HTTP 200 with 93 stations: 28 had current categories, 27 had PM2.5 and 15 had PM10. All non-null readings passed the freshness limit, and Alphington's category, interval-end time and concentrations matched the official website. See the [backend verification record](backend.md#private-epa-verification-7-november-2026) for the sample and deployment identifiers. Public activation remains a separate gate.
+The owner subscribed through the [EPA developer portal](https://portal.api.epa.vic.gov.au/) and entered the provider key directly in Sites settings. The implementation uses the official schema linked through [DataVic](https://discover.data.vic.gov.au/dataset/environment-monitoring-api), validated with fixtures and observed production differences. The 16:32 AEDT private check returned 93 stations with current readings and matched Alphington against the official website. Public activation at 17:16 AEDT then verified the snapshot and rendered Melbourne CBD/Footscray values, including missing PM10 and measured-zero PM2.5. The backend still rejects anonymous access. See the [backend verification records](backend.md) for observations, security checks and deployment identifiers. Scheduled refresh is configured every 15 minutes on a best-effort basis; the first verified run was push-triggered, and readings still expire after three hours.
 
 ## Current weather observations: scope reconciliation
 
@@ -83,10 +83,11 @@ A ten-minute GitHub Actions collector is technically schedulable, but [GitHub's 
 - [x] Polling, cache ages and source update cadence are documented separately. Failed requests do not refresh old timestamps.
 - [x] Meaningful tests cover invalid/missing fields, stale data, source regression, request changes and existing date/daylight-saving behavior.
 - [x] Real-browser checks cover local train/tram search, favourite persistence, navigation and desktop/mobile widths without console errors or horizontal overflow.
-- [ ] Complete public browser verification of authorised PTV/EPA data, expiry and provider failures after enabling those feeds.
+- [x] Verify public EPA snapshot rendering, suburb changes, missing readings and measured zero; regression tests cover expiry and provider failures.
+- [ ] Verify authorised PTV data and failure handling in the production browser after its credentials are configured.
 - [x] Provider credentials are absent from Git and frontend assets; frontend configuration contains only public data URLs.
-- [ ] Authorise the Actions service-access Secret and verify the published EPA snapshot contains only approved station data; keep the Sites host owner-private and `VITE_DATA_API_URL` unset.
-- [ ] Verify the Pages deployment, snapshot path, freshness and rendered EPA data for the tested revision. Any future direct transport API connection also needs its own access and CORS checks.
+- [x] Authorise the Actions service-access Secret and verify the published EPA snapshot contains only approved station data; keep the Sites host owner-private and `VITE_DATA_API_URL` unset.
+- [x] Verify the Pages deployment, snapshot path, freshness and rendered EPA data for the tested revision. Any future direct transport API connection still needs its own access and CORS checks.
 - [x] Update the source register and README to distinguish no-key features, implemented adapters and remaining access/verification gates.
 
 ## Boundaries retained from the first-version plan

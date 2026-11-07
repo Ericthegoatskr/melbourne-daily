@@ -1,8 +1,8 @@
 # Authenticated data backend
 
-The PTV and EPA adapters and their UI are implemented and tested. `EPA_API_KEY` is configured as a Sites Secret in environment revision 3, and the redeployed owner-private backend has passed live EPA verification for station metadata, categories and hourly PM2.5/PM10 readings. PTV credentials are still pending. The public Pages frontend leaves `VITE_DATA_API_URL` unset and shows unavailable states with official links for these feeds. Stop search and stop favourites continue to work from the public GTFS directory.
+The public homepage displays EPA categories and hourly PM2.5/PM10 readings from a validated GitHub Pages snapshot. `EPA_API_KEY` remains a Sites Secret in environment revision 3, and the backend remains owner-private. PTV credentials are still pending: `VITE_DATA_API_URL` stays unset and departures show an unavailable state with official links. Stop search and stop favourites continue to work from the public GTFS directory.
 
-The current Sites hosting project is owner-private. Anonymous Pages visitors cannot use it. EPA publication will use a validated JSON snapshot on GitHub Pages, so it does not require changing the backend's audience. Authorisation for the Actions service-access Secret and public end-to-end snapshot checks remain release gates.
+The Sites backend remains owner-private and returns HTTP 401 to anonymous requests. The authorised Actions collector can read it using a service-access Secret; anonymous visitors read only the published JSON snapshot from GitHub Pages.
 
 ## Canonical source and build
 
@@ -39,17 +39,19 @@ Configure these values in the backend host's runtime secret/environment settings
 
 The frontend accepts public data URLs only. `VITE_EPA_DATA_URL` enables EPA independently by pointing to the complete public JSON snapshot URL. If absent, EPA falls back to the `/api/air/observations` route under `VITE_DATA_API_URL`. Transport uses only `VITE_DATA_API_URL`. Keep that shared variable unset while PTV credentials are unavailable, so enabling EPA does not start unsuccessful transport polling. Neither variable contains a provider key.
 
-Never put provider credentials in any `VITE_*` variable, Pages artifact or committed `.env` file. Vite embeds its environment at build time, so enabling or changing a URL requires a new frontend build and Pages deployment. The Pages workflow maps the matching GitHub Actions repository variables into the frontend build only. Both variables are currently unset.
+Never put provider credentials in any `VITE_*` variable, Pages artifact or committed `.env` file. Vite embeds its environment at build time, so enabling or changing a URL requires a new frontend build and Pages deployment. The Pages workflow maps the matching GitHub Actions repository variables into the frontend build only. `VITE_EPA_DATA_URL` is set to `https://ericthegoatskr.github.io/melbourne-daily/data/epa-observations.json`; `VITE_DATA_API_URL` remains unset.
 
 ### Public EPA snapshots through GitHub Pages
 
-The prepared snapshot workflow keeps the Sites backend private. GitHub Actions calls it with a service-access credential in the `EPA_BACKEND_TOKEN` Actions Secret; the EPA provider key remains only in Sites. This workflow injects the credential only into the collection step on main-branch deployments and scheduled runs, never pull-request builds or the frontend build step. Repository writers can modify workflows to use repository secrets, so storing this credential requires the owner's explicit authorisation. It has not yet been stored.
+The snapshot workflow keeps the Sites backend private. With the owner's explicit authorisation, its service-access credential was stored as the `EPA_BACKEND_TOKEN` Actions Secret at 17:13 AEDT on 7 November 2026. The EPA provider key remains only in Sites. The workflow injects the service credential only into the collection step on main-branch deployments and scheduled runs, never pull-request builds or the frontend build step. Repository writers can modify workflows to use repository secrets.
 
 `npm run build:epa-collector` creates a Node collector outside the Pages artifact. The collector requests only the fixed private backend URL, refuses redirects, validates the response, removes unknown fields and expired readings, and rejects empty or stale snapshots. A successful request atomically writes `public/data/epa-observations.json`; failures stop publication and leave the previous deployed website in place. Generated snapshots and the collector bundle are ignored by Git.
 
-The prepared Pages workflow runs every 15 minutes at minutes 2, 17, 32 and 47. GitHub schedules are best effort and may be delayed or disabled after inactivity; this is not a real-time delivery guarantee. The client preserves each observation timestamp and hides readings after three hours. Once authorised, set `VITE_EPA_DATA_URL` to `https://ericthegoatskr.github.io/melbourne-daily/data/epa-observations.json`. The browser then reads only this public JSON file, sends no credentials or location query, and selects its nearest reporting station locally.
+The Pages workflow is configured to run at UTC minutes 2, 17, 32 and 47 of each hour. GitHub schedules are best effort and may be delayed or disabled after inactivity; this is not a real-time delivery guarantee. The client preserves each observation timestamp and hides readings after three hours. The browser reads only the public JSON file, sends no credentials or location query, and selects its nearest reporting station locally. The first verified publication was push-triggered; scheduled execution has not yet been observed.
 
-Snapshot preparation passed 223 tests and production builds. A local collector check retrieved 93 stations with 28 categories, 27 PM2.5 readings and 15 PM10 readings. The local browser preview showed Melbourne CBD as Good, PM2.5 4.8 µg/m³ and PM10 Unavailable. These checks verify the prepared path locally; the Actions Secret, public snapshot and production browser check remain pending.
+Public activation passed at 17:16 AEDT on 7 November 2026 (`2026-11-07T06:16:13Z`). [Actions run 42346099479](https://github.com/Ericthegoatskr/melbourne-daily/actions/runs/42346099479) built and deployed commit `08b7babccca1414978588ddc6f8cee1ad602dd2a`, including successful collection and 223 tests. Anonymous homepage and JSON requests returned HTTP 200. The snapshot was fetched at `06:14:31.894Z` and contained 93 stations: 28 categories, 27 PM2.5 readings and 15 PM10 readings, with all non-null observations within three hours.
+
+The public browser showed Melbourne CBD as Good, PM2.5 4.8 µg/m³ and PM10 Unavailable. Switching to Footscray showed Good, PM2.5 0.0 and PM10 17.7 µg/m³, for the hour ending 16:00 AEDT. The published JSON passed the strict field allowlist. Public HTML, JavaScript, CSS and JSON contained neither the service credential bytes nor credential/header names. The browser bundle contained the public JSON URL and no private-backend origin; the backend still returned HTTP 401 anonymously. Missing readings and measured zero remain distinct.
 
 ## Endpoints and timing
 
@@ -81,18 +83,18 @@ An anonymous request to `/api/air/observations` returned HTTP 401, confirming th
 | Deployment | `appgdep_6aeeb7d8764c8191af2577f14d8baa1c` |
 | Environment revision | `3` |
 
-This verifies the private backend. It does not activate EPA on GitHub Pages or verify PTV access.
+This earlier check verified the private backend; the public snapshot activation is recorded above. PTV access remains unverified.
 
 ## Remaining production gates
 
-- [ ] Obtain owner authorisation to store the existing Sites service-access credential as the `EPA_BACKEND_TOKEN` Actions Secret in `Ericthegoatskr/melbourne-daily`, then configure it.
+- [x] Obtain owner authorisation and configure the Sites service-access credential as the `EPA_BACKEND_TOKEN` Actions Secret in `Ericthegoatskr/melbourne-daily`.
 - [x] Configure `EPA_API_KEY` as a backend Secret and confirm the `X-API-Key` authentication header.
 - [ ] Configure authorised PTV runtime credentials.
 - [ ] Fetch actual train and tram responses, including GTFS stop-ID mapping, and compare scheduled/live/cancelled services with the official source.
 - [x] Fetch an actual EPA response and verify coordinates, interval boundaries, units, quality fields, missing sensors and provider categories against AirWatch.
-- [ ] Set `VITE_EPA_DATA_URL` to the public snapshot URL, keep `VITE_DATA_API_URL` unset and publish through the prepared Pages workflow.
-- [ ] Verify the deployed JSON contains only approved station fields, no credentials, and current observation timestamps; check normal, missing, stale and unavailable EPA states in the public browser.
-- [ ] Record the successful Actions run and deployed frontend revision in the release checklist; preserve the owner-private backend.
+- [x] Set `VITE_EPA_DATA_URL` to the public snapshot URL, keep `VITE_DATA_API_URL` unset and publish through the Pages workflow.
+- [x] Verify the deployed JSON contains only approved station fields, no credentials and fresh observation timestamps; check normal, missing and measured-zero values in the public browser.
+- [x] Record the successful Actions run and deployed frontend revision; preserve the owner-private backend.
 - [ ] Before any future direct browser connection to the transport API, verify its authorised access model and CORS for the exact Pages origin.
 
 The owner completed EPA registration and secret entry directly in the provider portal and Sites settings. No key values belong in this repository, frontend assets or verification records.

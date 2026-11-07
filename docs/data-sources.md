@@ -1,6 +1,6 @@
 # Data sources and coverage
 
-Reviewed on 7 November 2026, in the Australia/Melbourne time zone. Melbourne Daily serves its frontend on GitHub Pages. Public feeds are requested directly from the browser; the bundled GTFS directory supports stop search without credentials. The separate owner-private backend has `EPA_API_KEY` configured as a Secret and has passed live verification for EPA categories and hourly PM2.5/PM10 readings. EPA snapshot publication through Pages awaits authorisation for an Actions service-access Secret; PTV credentials remain pending. No API credentials are bundled. Application polling intervals below are product settings, not provider guarantees.
+Reviewed on 7 November 2026, in the Australia/Melbourne time zone. Melbourne Daily serves its frontend on GitHub Pages. Public feeds are requested directly from the browser; the bundled GTFS directory supports stop search without credentials. EPA categories and hourly PM2.5/PM10 readings are live through a public Pages snapshot collected from the owner-private backend. `EPA_API_KEY` remains a Sites Secret, and the authorised Actions service-access credential remains a separate Secret. PTV credentials are pending. No API credentials are bundled. Application polling intervals below are product settings, not provider guarantees.
 
 ## Current release and connection status
 
@@ -11,10 +11,10 @@ Reviewed on 7 November 2026, in the Australia/Melbourne time zone. Melbourne Dai
 | Parking          | Reporting sensor counts, available bays and street summaries       | Sensor-equipped City of Melbourne bays                           | Approximately two minutes in the original parking project's measurements / every two minutes |
 | Modeled air      | PM2.5 and PM10 estimates                                           | CAMS Global grid, approximately 45 km                            | Model updates every 12 hours; native three-hourly output / every 30 minutes                  |
 | Stop search and favourites | Official static train/tram boarding points; local saved selections | Greater Melbourne bounding box described below | Provider normally weekly/as needed; directory refresh scheduled weekly |
-| EPA observations | Live private-backend readings verified; Pages snapshot publication pending | Nearest eligible EPA station within 100 km of the selected suburb | Provider hourly; prepared snapshot schedule and client polling every 15 minutes, backend cache five minutes |
+| EPA observations | Station categories and measurements from a public Pages snapshot | Nearest eligible EPA station within 100 km of the selected suburb | Provider hourly; best-effort snapshot schedule and client polling every 15 minutes, backend cache five minutes |
 | PTV departures | Board, directions, cancellations and alerts implemented; live feed awaits credentials and public backend | Selected Metro train or tram stop | Live estimates when supplied; intended client polling 30 seconds and backend cache 25 seconds |
 
-The air estimates are not EPA observations. Until their data paths are activated, the site preserves stop search/favourites and shows unavailable states with official alternatives for PTV and EPA. EPA will read a public Pages snapshot while its backend stays private; deployment and fixture tests alone do not prove an active public feed.
+The air estimates are not EPA observations. EPA reads a verified public Pages snapshot while its backend stays private. PTV retains stop search/favourites and shows an unavailable departures state with official alternatives until its credentials are configured.
 
 ## Weather and UV forecasts: Open-Meteo
 
@@ -54,11 +54,11 @@ CAMS Global has approximately 45 km spatial resolution, native three-hourly data
 
 No EPA category or US/European AQI is calculated from these values. Missing concentrations, changed units and invalid or stale valid times cause the adapter to reject the response. Credit both CAMS / Copernicus Atmosphere Monitoring Service and Open-Meteo. The free API's non-commercial and request-volume conditions also apply here.
 
-## EPA observations: private backend verified, public activation pending
+## EPA observations: public snapshot live, backend private
 
 Sources: [EPA AirWatch](https://www.epa.vic.gov.au/check-air-and-water-quality), [developer portal](https://portal.api.epa.vic.gov.au/) and [air quality categories](https://www.epa.vic.gov.au/air-quality-categories).
 
-EPA's developer portal requires registration, a product subscription and an API key. It lists a default rate limit of five requests per second. The owner has an active Environment Monitoring subscription and has configured `EPA_API_KEY` as a Sites Secret. The current EPA endpoint confirms `X-API-Key` in its authentication challenge, and the redeployed private backend successfully retrieves authorised responses. The adapter is based on the official schema linked from [DataVic](https://discover.data.vic.gov.au/dataset/environment-monitoring-api), with tests for the documented contract and observed production differences. At 16:32 AEDT on 7 November 2026, a backend request returned 93 stations: 28 had current categories, 27 had PM2.5 and 15 had PM10. An Alphington sample matched the official website's category, observation time and rounded concentrations; see the [verification record](backend.md#private-epa-verification-7-november-2026). The prepared collector and local browser preview also work, but the public snapshot has not been published. Its remaining gates are authorising `EPA_BACKEND_TOKEN` in Actions, setting `VITE_EPA_DATA_URL`, publishing and checking the production page. AirWatch remains available through links in the application.
+EPA's developer portal requires registration, a product subscription and an API key. It lists a default rate limit of five requests per second. The owner has an active Environment Monitoring subscription and has configured `EPA_API_KEY` as a Sites Secret. The current EPA endpoint confirms `X-API-Key` in its authentication challenge, and the private backend retrieves authorised responses. The adapter follows the official schema linked from [DataVic](https://discover.data.vic.gov.au/dataset/environment-monitoring-api), with tests for observed production differences. Private verification at 16:32 AEDT on 7 November 2026 matched Alphington's category, observation time and concentrations against the official website. At 17:16 AEDT, anonymous Pages and snapshot requests also passed: the published snapshot contained 93 stations, including 28 categories, 27 PM2.5 readings and 15 PM10 readings. The public browser displayed Melbourne CBD and Footscray observations correctly. See the [verification records](backend.md). AirWatch remains available through links in the application.
 
 EPA reports hourly measurements and five categories: Good, Fair, Poor, Very Poor and Extremely Poor. Its regional forecast updates daily at 5 pm for the following 24 hours. Monitoring coverage and equipment availability differ by site and pollutant. Missing or stalled readings must remain unavailable, not be interpreted as Good.
 
@@ -66,7 +66,7 @@ The backend calls the official `/environmentMonitoring/v1/sites/parameters?envir
 
 The frontend expires fields independently, then chooses the nearest station with at least one usable field within 100 km of the selected suburb. The displayed category and pollutants belong to that station; missing pollutants are not silently borrowed from another station. Station distance describes the monitoring location, not the precision of an inferred reading at the user's suburb. Source timestamps represent the end of each one-hour observation interval, separately from backend retrieval time.
 
-The EPA provider key stays in Sites. The prepared collector would use a separate Actions Secret to reach that private backend and publish only validated station fields. The browser reads the public JSON snapshot and chooses a station locally, without sending coordinates or credentials to Sites. Do not put API keys in `VITE_*` variables or public JavaScript. See [backend configuration and live-access gates](backend.md).
+The EPA provider key stays in Sites. The collector uses the authorised `EPA_BACKEND_TOKEN` Actions Secret to reach that private backend and publish only validated station fields. `VITE_EPA_DATA_URL` points the browser to the public JSON snapshot; it chooses a station locally without sending coordinates or credentials to Sites. `VITE_DATA_API_URL` remains unset while PTV is unavailable. Do not put API keys in `VITE_*` variables or public JavaScript. See [backend configuration and verification](backend.md).
 
 ## Transport: public directory and credential-gated PTV board
 
@@ -97,5 +97,5 @@ If a future version changes to GTFS Realtime, it must join the correct static tr
 2. Load, refresh and report failures independently for each feed.
 3. Never substitute demo numbers for unavailable live data. Keep official destinations accessible.
 4. Recalculate freshness as time passes and when a background tab becomes visible. Reject older responses that would replace a newer accepted result.
-5. Hide expired values: weather after 90 minutes, UV and parking after 15 minutes, modeled air and individual EPA observations after three hours, and the PTV board after two minutes. These are product limits, not provider guarantees. The last two integrations still await live activation.
-6. GitHub Actions builds/deploys the application and maintains the weekly stop directory. The prepared EPA snapshot job would publish on a best-effort 15-minute schedule, preserving original observation times; it does not provide minute-by-minute transit data.
+5. Hide expired values: weather after 90 minutes, UV and parking after 15 minutes, modeled air and individual EPA observations after three hours, and the PTV board after two minutes. These are product limits, not provider guarantees. PTV activation remains pending.
+6. GitHub Actions builds/deploys the application and maintains the weekly stop directory. The EPA snapshot job is configured for a best-effort 15-minute schedule, preserving original observation times; it does not provide minute-by-minute transit data.
