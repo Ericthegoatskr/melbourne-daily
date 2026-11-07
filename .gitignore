@@ -1,6 +1,8 @@
 node_modules/
 dist/
 dist-api/
+dist-tools/
+public/data/epa-observations.json
 .DS_Store
 .env
 .env.*

@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "noEmit": true,
-    "types": ["vite/client", "vitest/globals"]
+    "types": ["vite/client", "vitest/globals", "node"]
   },
-  "include": ["src", "server", "shared", "vite.config.ts"]
+  "include": ["src", "server", "shared", "scripts", "vite.config.ts"]
 }

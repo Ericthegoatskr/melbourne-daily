@@ -7,7 +7,7 @@ import {
   type EpaPollutantReading,
   type EpaStation,
 } from "../../shared/epa";
-import { apiUrl } from "./api";
+import { apiConfigured, apiUrl } from "./api";
 
 export {
   EPA_MAX_AGE_MS,
@@ -19,6 +19,13 @@ export {
 } from "../../shared/epa";
 
 type Coordinates = { latitude: number; longitude: number };
+
+/** A public EPA snapshot can be enabled without exposing a private backend. */
+export function epaConfigured(): boolean {
+  return apiConfigured(
+    import.meta.env.VITE_EPA_DATA_URL || import.meta.env.VITE_DATA_API_URL,
+  );
+}
 
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -221,16 +228,30 @@ export async function fetchEpa(
   signal?: AbortSignal,
 ): Promise<EpaObservations> {
   if (!coordinates(location)) throw new Error("Invalid location coordinates");
-  const url = new URL(apiUrl("/api/air/observations"), window.location.href);
-  url.searchParams.set("latitude", String(location.latitude));
-  url.searchParams.set("longitude", String(location.longitude));
+  if (!epaConfigured())
+    throw new Error(
+      "This live data service is not connected yet. Please use the official source.",
+    );
+  const dataUrl = import.meta.env.VITE_EPA_DATA_URL;
+  const url = new URL(
+    dataUrl || apiUrl("/api/air/observations"),
+    window.location.href,
+  );
+  // Snapshots contain all stations; location matching happens in this browser.
+  if (!dataUrl) {
+    url.searchParams.set("latitude", String(location.latitude));
+    url.searchParams.set("longitude", String(location.longitude));
+  }
   const controller = new AbortController();
   const abort = () => controller.abort(signal?.reason);
   if (signal?.aborted) abort();
   else signal?.addEventListener("abort", abort, { once: true });
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, {
+      signal: controller.signal,
+      ...(dataUrl ? { cache: "no-cache" as const, credentials: "omit" as const } : {}),
+    });
     if (!response.ok)
       throw new Error(
         `EPA station readings are unavailable (HTTP ${response.status})`,

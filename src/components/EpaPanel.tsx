@@ -1,9 +1,9 @@
 import { MapPin } from "lucide-react";
 import type { EpaPollutantReading } from "../../shared/epa";
-import { apiConfigured } from "../lib/api";
 import {
   EPA_REFRESH_MS,
   EPA_SOURCE_URL,
+  epaConfigured,
   epaStationUrl,
   fetchEpa,
   nearestEpaStation,
@@ -19,7 +19,7 @@ interface EpaPanelProps {
 }
 
 export default function EpaPanel({ location, now, revision }: EpaPanelProps) {
-  const configured = apiConfigured();
+  const configured = epaConfigured();
   const resource = useResource<EpaObservations | null>(
     `epa:${configured}:${location.latitude}:${location.longitude}`,
     (signal) =>

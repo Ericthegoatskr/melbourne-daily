@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # EPA observations are hourly; refresh the public snapshot on a best-effort cadence.
+    - cron: '2,17,32,47 * * * *'
 
 permissions:
   contents: read
@@ -25,21 +28,30 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Build EPA snapshot collector
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: npm run build:epa-collector
+      - name: Collect public EPA snapshot from private backend
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: node dist-tools/collect-epa.mjs
+        env:
+          EPA_BACKEND_TOKEN: ${{ secrets.EPA_BACKEND_TOKEN }}
       - run: npm run build
         env:
           VITE_DATA_API_URL: ${{ vars.VITE_DATA_API_URL }}
+          VITE_EPA_DATA_URL: ${{ vars.VITE_EPA_DATA_URL }}
       - run: npm run build:api
       - name: Configure Pages
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Upload site
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: dist
 
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     permissions:

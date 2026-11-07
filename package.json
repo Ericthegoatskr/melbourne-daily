@@ -7,9 +7,10 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "build:api": "node scripts/build-api.mjs",
+    "build:epa-collector": "node scripts/build-epa-collector.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run test && npm run build && npm run build:api",
+    "verify": "npm run test && npm run build && npm run build:api && npm run build:epa-collector",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {

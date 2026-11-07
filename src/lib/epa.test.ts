@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   distanceKm,
+  epaConfigured,
   epaStationUrl,
   fetchEpa,
   latestEpaObservation,
@@ -9,6 +10,7 @@ import {
   type EpaObservations,
   type EpaStation,
 } from "./epa";
+import { transitApiConfigured } from "./transit";
 
 const now = Date.parse("2026-11-06T18:30:00Z");
 const iso = (minutesAgo: number) =>
@@ -134,9 +136,16 @@ describe("EPA observation client and nearest reporting site", () => {
     expect(url.searchParams.get("site")).toBe("air|station-id");
   });
 
-  it("requests only the public proxy with coordinates and no API key", async () => {
+  it.each([
+    { epa: "https://pages.example.test/dashboard/data/epa-observations.json", shared: "" },
+    { epa: "https://pages.example.test/dashboard/data/epa-observations.json", shared: "https://shared.example.test" },
+    { epa: "", shared: "https://shared.example.test" },
+  ])("requests a public EPA snapshot or shared proxy while keeping transport independent ($epa, $shared)", async ({ epa, shared }) => {
     vi.setSystemTime(now);
-    vi.stubEnv("VITE_DATA_API_URL", "https://data.example.test");
+    vi.stubEnv("VITE_EPA_DATA_URL", epa);
+    vi.stubEnv("VITE_DATA_API_URL", shared);
+    expect(epaConfigured()).toBe(true);
+    expect(transitApiConfigured()).toBe(Boolean(shared));
     const fetcher = vi
       .fn()
       .mockResolvedValue(
@@ -146,13 +155,49 @@ describe("EPA observation client and nearest reporting site", () => {
     const result = await fetchEpa(cbd);
     expect(result.stations[0].name).toBe("Test monitoring site");
     const url = new URL(String(fetcher.mock.calls[0][0]));
-    expect(url.origin).toBe("https://data.example.test");
-    expect(url.pathname).toBe("/api/air/observations");
-    expect(url.searchParams.get("latitude")).toBe(String(cbd.latitude));
+    if (epa) {
+      expect(url.href).toBe(epa);
+      expect(url.search).toBe("");
+      expect(fetcher.mock.calls[0][1].cache).toBe("no-cache");
+      expect(fetcher.mock.calls[0][1].credentials).toBe("omit");
+    } else {
+      expect(url.origin).toBe(shared);
+      expect(url.pathname).toBe("/api/air/observations");
+      expect(url.searchParams.get("latitude")).toBe(String(cbd.latitude));
+      expect(url.searchParams.get("longitude")).toBe(String(cbd.longitude));
+    }
     expect(fetcher.mock.calls[0][1].headers).toBeUndefined();
   });
 
+  it("refuses a credential-bearing EPA snapshot URL before making a browser request", async () => {
+    vi.stubEnv("VITE_EPA_DATA_URL", "https://pages.example.test/data.json?key=synthetic-secret");
+    vi.stubEnv("VITE_DATA_API_URL", "https://shared.example.test");
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    expect(epaConfigured()).toBe(false);
+    await expect(fetchEpa(cbd)).rejects.toThrow(/not connected/);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("selects the nearest station locally from one public snapshot", async () => {
+    vi.setSystemTime(now);
+    vi.stubEnv("VITE_EPA_DATA_URL", "https://pages.example.test/data/epa-observations.json");
+    vi.stubEnv("VITE_DATA_API_URL", "");
+    const eastern = station({ id: "eastern", latitude: -37.817, longitude: 145.125 });
+    const fetcher = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(response([station(), eastern])), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const snapshot = await fetchEpa(cbd);
+    expect(nearestEpaStation(snapshot, cbd, now)?.id).toBe("near-station");
+    expect(nearestEpaStation(snapshot, eastern, now)?.id).toBe("eastern");
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(new URL(String(fetcher.mock.calls[0][0])).search).toBe("");
+    expect(transitApiConfigured()).toBe(false);
+  });
+
   it("fails clearly for an unavailable proxy rather than treating a failure as an empty Good report", async () => {
+    vi.stubEnv("VITE_EPA_DATA_URL", "");
     vi.stubEnv("VITE_DATA_API_URL", "https://data.example.test");
     vi.stubGlobal(
       "fetch",

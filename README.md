@@ -24,7 +24,7 @@ The transit board supports route/direction selection, separate direction favouri
 
 The EPA panel supports the nearest eligible monitoring station within 100 km of the chosen suburb, station distance, the provider's category, available hourly PM2.5/PM10 readings and each reading's timestamp. Model estimates remain a separate source. Missing or stale observations never become a “Good” category.
 
-The EPA subscription key is stored as a backend Secret, and its `X-API-Key` authentication header is confirmed. On 7 November 2026, the private backend returned 93 station records, including current categories and hourly pollutant readings where available; an Alphington sample matched EPA's public website. PTV still needs its own credentials. Public activation also requires an authorised change to the backend's audience and end-to-end checks. The Sites backend remains owner-private and `VITE_DATA_API_URL` remains unset, so the public site shows unavailable states and official alternatives for these feeds. See the [backend verification record and release gates](docs/backend.md).
+The EPA subscription key is stored as a backend Secret, and its `X-API-Key` authentication header is confirmed. On 7 November 2026, the private backend returned 93 station records, including current categories and hourly pollutant readings where available; an Alphington sample matched EPA's public website. The prepared GitHub Actions collector will publish a validated EPA JSON snapshot through Pages while the Sites backend stays owner-private. Activation awaits authorisation to store its service-access credential as the `EPA_BACKEND_TOKEN` Actions Secret, setting `VITE_EPA_DATA_URL`, and publication checks. No snapshot has been published yet. PTV credentials remain pending and `VITE_DATA_API_URL` remains unset. See the [backend verification record and release gates](docs/backend.md).
 
 ## Run locally
 
@@ -42,7 +42,7 @@ npm run verify
 npm run preview
 ```
 
-Verification runs the tests, TypeScript checking, the frontend production build and the backend bundle build. Preview serves the frontend production bundle.
+Verification runs the tests, TypeScript checking and production builds. Preview serves the frontend production bundle.
 
 ## GitHub Pages and directory updates
 
@@ -52,7 +52,7 @@ The repository is `Ericthegoatskr/melbourne-daily`, with Vite's base path set to
 
 Scheduled runs are best effort and can be delayed or disabled for an inactive public repository. A failed collection preserves the last committed directory. Check both the refresh run and the subsequent Pages deployment; a successful commit alone does not publish the update. See [directory maintenance](docs/transit-directory.md).
 
-Live public feeds are requested in the browser. This weekly job maintains stop metadata; it does not collect minute-by-minute transit predictions.
+Live public feeds are requested in the browser. The prepared EPA snapshot workflow uses a separate 15-minute schedule; it is not yet activated. The weekly stop job maintains metadata and does not collect minute-by-minute transit predictions.
 
 ## Project layout
 
@@ -74,7 +74,7 @@ The sibling `melbourne-daily-api` directory is generated Sites hosting scaffoldi
 
 ## Data and privacy
 
-Suburb selection, saved stops/directions and pinned shortcuts stay in this browser's local storage. There is no account system or cross-device sync. Public feeds are requested from their providers. Once enabled, the backend receives transit queries and selected coordinates for EPA requests; provider keys stay server-side.
+Suburb selection, saved stops/directions and pinned shortcuts stay in this browser's local storage. There is no account system or cross-device sync. Public feeds are requested from their providers. With the prepared EPA snapshot path, the browser downloads public station data and selects its nearest station locally, sending no location query or credential to the private backend. The EPA provider key stays in Sites; the proposed Actions service-access credential is separate and awaits authorisation. A future transport connection would send selected stop queries to its backend.
 
 Open-Meteo's free API is for non-commercial use. Data credit includes Open-Meteo, CAMS / Copernicus Atmosphere Monitoring Service and City of Melbourne. Transport data is licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence. **UV observations courtesy of ARPANSA.** Read the [ARPANSA UV data disclaimer](https://www.arpansa.gov.au/our-services/monitoring/ultraviolet-radiation-monitoring/ultraviolet-radation-data-information#Disclaimer).
 
