@@ -1,0 +1,54 @@
+/* PTV-inspired identity. Scope red action surfaces to Transport so other
+   destination themes and semantic status colours keep their own meaning. */
+html[data-page="transport"][data-theme="navy"] :is(.refresh-button, .brand-mark, .brand-mark > span, .tr-hero-links a:first-child),
+html[data-page="transport"][data-theme="navy"] .tr-hero-links a:first-child:hover {
+  color: #fff;
+}
+html[data-page="transport"][data-theme="navy"] ::selection,
+html[data-page="home"][data-theme="navy"] [data-entry="transport"] ::selection {
+  background: #d92b26;
+  color: #fff;
+}
+html[data-page="transport"][data-theme="navy"] .tr-hero {
+  background: #303232;
+  --tram-body-light: #9dd44a;
+  --tram-body-dark: #78be20;
+  --tram-body-edge: #4c7915;
+  --tram-body-side: #5f9818;
+  --tram-window-frame: #426a13;
+  --tram-sign: #e7f4d4;
+  --tram-grille: #426a13;
+  --tram-trim: #aad763;
+  --tram-building: #d7d2cb;
+  --tram-halo: #c7cebe;
+}
+html[data-page="transport"][data-theme="navy"] .tr-status-card {
+  background: var(--palette-surface);
+}
+html[data-page="transport"][data-theme="navy"] .tr-status-card--ready > svg {
+  background: #e7efda;
+  color: #426c12;
+}
+html[data-page="transport"][data-theme="navy"] :is(.tr-hero-links a:first-child, .refresh-button) {
+  min-height: 44px;
+  background: #d92b26;
+  border-color: #d92b26;
+  box-shadow: none;
+}
+html[data-page="transport"][data-theme="navy"] :is(.tr-hero-links a:first-child, .refresh-button):hover {
+  background: #b9201c;
+  border-color: #b9201c;
+}
+html[data-page="home"][data-theme="navy"] .card[data-entry="transport"] .dashboard-entry-link:hover {
+  color: #fff;
+}
+html[data-page="home"][data-theme="navy"] .summary-tile[data-entry="transport"] .summary-icon {
+  color: #ffa39f;
+}
+/* Keep editable boundaries and placeholder text legible on white panels. */
+html[data-page="transport"][data-theme="navy"] :is(.stop-search-input, .tr-workspace .stop-search-input, .direction-picker select, .transit-destination-field input, .transit-landmark-field select, .nearby-radius select) {
+  border-color: #7e827e;
+}
+html[data-page="transport"][data-theme="navy"] .stop-search-input input::placeholder {
+  color: var(--palette-secondary);
+}

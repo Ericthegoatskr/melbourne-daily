@@ -21,7 +21,7 @@ describe("collection palette preference", () => {
   it.each([
     { palette: "amber", label: "Walnut and amber colour theme", name: "Walnut & amber", canvas: "#2c241b" },
     { palette: "forest", label: "Forest and mint colour theme", name: "Forest & mint", canvas: "#102e29" },
-    { palette: "iris", label: "Indigo and iris colour theme", name: "Indigo & iris", canvas: "#252342" },
+    { palette: "iris", label: "PTV inspired red and charcoal theme", name: "PTV red & charcoal", canvas: "#202222" },
   ] as const)("restores $name after a shared preference change without changing destination identity", ({ palette, label, name, canvas }) => {
     const themeColour = document.createElement("meta");
     themeColour.name = "theme-color";

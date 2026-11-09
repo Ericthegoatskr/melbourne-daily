@@ -8,7 +8,7 @@ GitHub Pages serves the revision from the latest successful deployment. **EPA st
 
 ## Dashboard collection style
 
-The homepage uses the collection's navy frame with destination-themed summary cards and dashboard entry surfaces: sunset for weather/UV, walnut/amber for parking, forest/mint for air quality, and indigo/iris for transport. It includes an interactive hourly weather chart, keyboard and touch forecast selection, weather illustrations, finite entrance animations and feedback when readings change. Reduced-motion preferences disable animation. Summary cards preserve the same source times and expiry rules as their detailed panels.
+The homepage uses the collection's navy frame with destination-themed summary cards and dashboard entry surfaces: sunset for weather/UV, walnut/amber for parking, forest/mint for air quality, and classic PTV red/charcoal for transport. It includes an interactive hourly weather chart, keyboard and touch forecast selection, weather illustrations, finite entrance animations and feedback when readings change. Reduced-motion preferences disable animation. Summary cards preserve the same source times and expiry rules as their detailed panels.
 
 The [Weather & UV dashboard](https://ericthegoatskr.github.io/melbourne-daily/weather.html) gives weather its own destination, linked from the homepage weather card. It shares the suburb preference, forecast interaction, weather artwork and reading-change animation with the homepage. Its dedicated layout adds current-weather metric tiles, an hourly model UV chart and a sunrise/sunset panel. Observed station UV stays separate from forecast UV, and expired readings remain hidden.
 
@@ -22,7 +22,7 @@ After choosing a stop through nearby results, name search or a saved favourite, 
 
 The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). The homepage, weather, air-quality and transport pages and separate Parking Dashboard use the same collection style. Dedicated layout rules are scoped in `src/WeatherDashboard.css`, `src/AirDashboard.css` and `src/TransportDashboard.css`.
 
-Each destination has its own featured palette: **Home — Navy & coral**, **Parking — Walnut & amber**, **Weather & UV — Sunset glow**, **Air quality — Forest & mint**, and **Transport — Indigo & iris**. Use **Colour theme** in the sidebar/mobile menu to restore Original light. That featured/light preference persists across the five dashboards; each page retains its own identity when featured colours are enabled.
+Each destination has its own featured palette: **Home — Navy & coral**, **Parking — Walnut & amber**, **Weather & UV — Sunset glow**, **Air quality — Forest & mint**, and **Transport — PTV red & charcoal**. Use **Colour theme** in the sidebar/mobile menu to restore Original light. That featured/light preference persists across the five dashboards; each page retains its own identity when featured colours are enabled.
 
 Shared palette roles are in `src/styles/palette-tokens.css` and the navigation frame is in `src/styles/navy-theme.css`. Each HTML entry declares `data-page` and applies the saved preference before paint. UV risk, EPA categories and parking availability retain their semantic colours and text labels.
 

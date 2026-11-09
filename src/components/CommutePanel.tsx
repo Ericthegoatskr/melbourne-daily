@@ -215,7 +215,7 @@ export default function CommutePanel({
       {saved.length > 0 && (
         <div className="saved-commutes" aria-label="Saved stops">
           {saved.map((item) => (
-            <div className="saved-commute" key={selectionId(item)}>
+            <div className="saved-commute" data-transit-mode={item.stop.mode} key={selectionId(item)}>
               <button
                 aria-pressed={
                   !!selection && selectionId(selection) === selectionId(item)
@@ -250,18 +250,20 @@ export default function CommutePanel({
         <div className="stop-search">
           <div className="segmented" role="group" aria-label="Transport mode">
             <button
+              data-transit-mode="train"
               aria-pressed={mode === "train"}
               onClick={() => setMode("train")}
             >
               Metro trains
             </button>
             <button
+              data-transit-mode="tram"
               aria-pressed={mode === "tram"}
               onClick={() => setMode("tram")}
             >
               Trams
             </button>
-            <button aria-pressed={mode === "bus"} onClick={() => setMode("bus")}>
+            <button data-transit-mode="bus" aria-pressed={mode === "bus"} onClick={() => setMode("bus")}>
               Buses
             </button>
           </div>
@@ -306,6 +308,7 @@ export default function CommutePanel({
                 results.map((stop) => (
                   <button
                     key={`${stop.mode}:${stop.id}`}
+                    data-transit-mode={stop.mode}
                     onClick={() => {
                       setSelection({ stop });
                       setEditing(false);
@@ -355,7 +358,7 @@ export default function CommutePanel({
   );
   const selectedStop = selection && (
     <>
-      <div className="selected-stop">
+      <div className="selected-stop" data-transit-mode={selection.stop.mode}>
         <div>
           <strong>{selection.stop.name}</strong>
           <span>

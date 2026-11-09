@@ -12,7 +12,13 @@ Each destination has a distinct featured palette within one layout and interacti
 | Parking | `#2C241B` | `#EDBD69` | Walnut & amber |
 | Weather & UV | `#210C22` | `#FF754B` | Sunset glow |
 | Air quality | `#102E29` | `#9CDBBB` | Forest & mint |
-| Transport | `#252342` | `#BFB2FF` | Indigo & iris |
+| Transport | `#202222` | `#D92B26` | PTV red & charcoal |
+
+Transport's featured theme references the classic [PTV Master Style Guide 2018 colour module](https://www.righttoknow.org.au/request/5149/response/13973/attach/4/PTVH2977%20MSG%202018%202.4%20Colour%20v10%20PA%20v2.pdf), with corporate red `#D92B26`, charcoal framing and warm white reading surfaces. This is an independent PTV-inspired palette, not an official PTV service or a claim to the current Transport Victoria brand. The existing independence notice remains visible; no PTV logo is used. The homepage's Transport entry uses the same palette.
+
+Modal wayfinding uses the [DTP Transport Pictograms](https://opendata.transport.vic.gov.au/dataset/transport-pictograms) colours: train `#0072CE`, tram `#78BE20`, bus `#FF8200`. The source SVGs corroborate these three values. Mode selectors, stop-list icons and map markers use the same scheme in both themes. Letters T/R/B, distinct shapes, text and pressed states supplement colour. White text on PTV red and train blue exceeds 4.5:1; green and orange use dark text, and marker outlines use darker variants for contrast on light tiles. Search centre and radius use neutral grey to avoid looking like another transport mode. Red actions use white labels; reading surfaces retain dark text.
+
+`src/styles/ptv-transport.css` supplies scoped featured-theme treatment, and `src/styles/transit-modes.css` supplies modal wayfinding. Keep the original layout, data adapters, mobile navigation, keyboard focus and reduced-motion handling intact. The decorative tram changes to green in the featured theme; it still represents no live service. Original light remains available through the shared theme switch.
 
 Impeccable leads this task-oriented interface: colour identifies the destination and interaction state while light data surfaces preserve readability. Shared navigation, type, spacing, source attribution and motion stay consistent. Keep Australian English and Melbourne time. Decorative labels above headings are omitted; factual dates and sources stay below the page description.
 

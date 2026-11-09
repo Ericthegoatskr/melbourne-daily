@@ -126,7 +126,7 @@ export default function NearbyStops({
     {center && <>
       <div className="nearby-transit-filters">
         <div className="segmented" role="group" aria-label="Nearby transport mode">
-          {([['all', 'All'], ['train', 'Trains'], ['tram', 'Trams'], ['bus', 'Buses']] as const).map(([value, label]) => <button key={value} aria-pressed={mode === value} onClick={() => setMode(value)}>{label}</button>)}
+          {([['all', 'All'], ['train', 'Trains'], ['tram', 'Trams'], ['bus', 'Buses']] as const).map(([value, label]) => <button key={value} data-transit-mode={value} aria-pressed={mode === value} onClick={() => setMode(value)}>{label}</button>)}
         </div>
         <label className="nearby-radius"><span>Nearby search radius</span><select value={radius} onChange={(event) => setRadius(Number(event.target.value))}><option value={1000}>1 km</option><option value={2000}>2 km</option><option value={5000}>5 km</option></select></label>
       </div>
@@ -138,7 +138,7 @@ export default function NearbyStops({
           onSelect={(stop) => onSelect(stop, { focusBoard: false })} onViewDepartures={(stop) => onSelect(stop)} />
         <div className="nearby-stop-results" role="region" aria-label="Nearby stops">
           {nearby.length ? <ol>{nearby.map(({ stop, label, distanceMetres, platformCount }, index) => <li key={`${stop.idScheme}:${stop.mode}:${stop.id}`}>
-            <button aria-pressed={selectedStop?.id === stop.id && selectedStop.mode === stop.mode && selectedStop.idScheme === stop.idScheme} onClick={() => onSelect(stop)}>
+            <button data-transit-mode={stop.mode} aria-pressed={selectedStop?.id === stop.id && selectedStop.mode === stop.mode && selectedStop.idScheme === stop.idScheme} onClick={() => onSelect(stop)}>
               <span className="nearby-stop-number" aria-hidden="true">{index + 1}</span>
               {stop.mode === "train" ? <TrainFront size={18} aria-hidden /> : stop.mode === "tram" ? <TramFront size={18} aria-hidden /> : <BusFront size={18} aria-hidden />}
               <span className="nearby-stop-copy"><strong>{label}</strong><small>{stop.mode === "train" ? `Metro train${platformCount > 1 ? ` · ${platformCount} mapped platforms` : ""}` : `${stop.mode === "bus" ? "Bus" : "Tram"} · Boarding point ${stop.id}`}</small></span>

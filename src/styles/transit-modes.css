@@ -1,0 +1,91 @@
+/* PTV-inspired mode identities stay consistent across the home and transport
+   views. Labels, icons and marker shapes carry the same meaning without colour. */
+:root :is(.transport-dashboard, [data-entry="transport"]) [data-transit-mode="train"] {
+  --transit-mode: #0072ce;
+  --transit-mode-ink: #005a9f;
+  --transit-mode-tint: #eaf4fc;
+  --transit-mode-hover: #d9ecfa;
+  --transit-mode-on: #fff;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) [data-transit-mode="tram"] {
+  --transit-mode: #78be20;
+  --transit-mode-ink: #426c12;
+  --transit-mode-tint: #f0f7e7;
+  --transit-mode-hover: #e4f0d3;
+  --transit-mode-on: #172016;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) [data-transit-mode="bus"] {
+  --transit-mode: #ff8200;
+  --transit-mode-ink: #9a4700;
+  --transit-mode-tint: #fff2e5;
+  --transit-mode-hover: #ffe5c9;
+  --transit-mode-on: #291a0a;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) [data-transit-mode="all"] {
+  --transit-mode: #252a2f;
+  --transit-mode-ink: #343b42;
+  --transit-mode-tint: #f0f2f3;
+  --transit-mode-hover: #e3e7ea;
+  --transit-mode-on: #fff;
+}
+
+:root :is(.transport-dashboard, [data-entry="transport"]) .segmented button[data-transit-mode] {
+  color: var(--transit-mode-ink);
+  background: var(--transit-mode-tint);
+  box-shadow: none;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .segmented button[data-transit-mode][aria-pressed="true"] {
+  color: var(--transit-mode-on);
+  background: var(--transit-mode);
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .nearby-stop-results button[data-transit-mode] {
+  color: #252a2f;
+  background: #fff;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .nearby-stop-results button[data-transit-mode] > svg,
+:root :is(.transport-dashboard, [data-entry="transport"]) .nearby-stop-results button[data-transit-mode] .nearby-stop-number,
+:root :is(.transport-dashboard, [data-entry="transport"]) .stop-results > button[data-transit-mode] > svg,
+:root :is(.transport-dashboard, [data-entry="transport"]) .saved-commute[data-transit-mode] svg {
+  color: var(--transit-mode-ink);
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .nearby-stop-results button[data-transit-mode] .nearby-stop-copy small,
+:root :is(.transport-dashboard, [data-entry="transport"]) .stop-results > button[data-transit-mode] small {
+  color: #525b64;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .nearby-stop-results button[data-transit-mode][aria-pressed="true"] {
+  background: var(--transit-mode-tint);
+  outline: 1px solid var(--transit-mode-ink);
+  outline-offset: -1px;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .saved-commute[data-transit-mode] {
+  background: #fff;
+  border-color: #ccd1d5;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .saved-commute[data-transit-mode] span {
+  color: #252a2f;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .saved-commute[data-transit-mode] small {
+  color: #525b64;
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .saved-commute[data-transit-mode] > button[aria-pressed="true"] {
+  background: var(--transit-mode-tint);
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) .selected-stop[data-transit-mode] strong,
+:root :is(.transport-dashboard, [data-entry="transport"]) .selected-stop[data-transit-mode] .save-stop {
+  color: var(--transit-mode-ink);
+}
+
+@media (hover: hover) {
+  :root :is(.transport-dashboard, [data-entry="transport"]) .segmented button[data-transit-mode]:not([aria-pressed="true"]):hover,
+  :root :is(.transport-dashboard, [data-entry="transport"]) .nearby-stop-results button[data-transit-mode]:hover,
+  :root :is(.transport-dashboard, [data-entry="transport"]) .stop-results > button[data-transit-mode]:hover,
+  :root :is(.transport-dashboard, [data-entry="transport"]) .saved-commute[data-transit-mode] > button:first-child:hover {
+    background: var(--transit-mode-hover);
+  }
+}
+:root :is(.transport-dashboard, [data-entry="transport"]) button[data-transit-mode]:focus-visible,
+:root :is(.transport-dashboard, [data-entry="transport"]) [data-transit-mode] > button:focus-visible,
+:root :is(.transport-dashboard, [data-entry="transport"]) .selected-stop[data-transit-mode] button:focus-visible {
+  outline: 2px solid var(--transit-mode-ink);
+  outline-offset: 2px;
+}

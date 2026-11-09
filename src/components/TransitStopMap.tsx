@@ -105,8 +105,8 @@ export function TransitStopMap({ center, nearby, radiusMetres, selectedStop, onS
     layer.clearLayers();
     markers.current.clear();
     const circle = L.circle([point.latitude, point.longitude], {
-      radius, color: "#5f439c", weight: 1.5, dashArray: "6 6",
-      fillColor: "#8d73bd", fillOpacity: 0.06, interactive: false,
+      radius, color: "#68737d", weight: 1.5, dashArray: "6 6",
+      fillColor: "#68737d", fillOpacity: 0.06, interactive: false,
     }).addTo(layer);
     // Fit the displayed stops rather than the entire radius: a sparse local
     // result set should remain legible even when the search radius is large.
