@@ -39,6 +39,21 @@ Use local geolocation overrides or mocks for reproducible cases; do not publish 
 - Use a valid fix outside directory coverage and a small radius with no matching mode. Show a useful empty state with radius/mode choices and text search, without inventing a nearest result beyond the radius.
 - Inspect the URL, local/session storage and network traffic before and after locating, filtering, clearing and selecting. No device coordinates may appear. Locating alone must not start a PTV board lookup or change an existing board; explicit selection uses only the established stop/mode and route/direction request fields. Confirm no provider key or private-backend credential appears in the browser.
 
+## Walking directions
+
+The shared selected-stop panel on the homepage and transport page offers Google Maps and Apple Maps walking directions. A stop chosen through nearby matching, name search or saved favourites uses the same links. They depend on the selected stop's validated public coordinates, not a successful departure response, so a restored selection remains navigable when PTV is unavailable.
+
+Links are constructed locally as HTTPS URLs with the stop as the destination and walking as the travel mode. They omit the origin, device coordinates and credentials. Opening a link is an explicit user action in a new tab or the provider's app; the provider handles the starting point, route and any subsequent location permission. No maps SDK, additional API key or backend change is required.
+
+The destination is the directory's mapped platform or boarding point, including the nearest representative point for grouped train stations. It is not a verified station entrance or accessible route. Users should check the entrance, boarding direction and side of the street in the map before walking to a stop.
+
+### Walking-directions manual QA
+
+- On the homepage and transport page, confirm directions are absent before a selection and appear after nearby, name-search or saved-stop selection. Switch between train and tram stops and verify both destinations update to the new stop's exact coordinates.
+- Inspect both HTTPS links for walking mode and no explicit origin, device coordinates or credentials. Invalid coordinates must not produce a navigation link. A restored valid stop must retain directions with the PTV connection unconfigured or its response unavailable.
+- Check new-tab disclosure, keyboard activation and visible focus. On narrow screens, keep the links readable, at least 44 px high and free of horizontal overflow. Opening a map must retain the dashboard's selected stop, filters and live board.
+- Verify the map provider receives the intended public destination and walking mode. Do not grant device-location access merely to test the links; use the provider's route preview or inspect its destination and mode controls.
+
 ## Collector
 
 Run with Python 3.9 or later; only the standard library is required:

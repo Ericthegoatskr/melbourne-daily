@@ -5,6 +5,7 @@ import {
   Check,
   ChevronDown,
   Clock3,
+  Footprints,
   MapPin,
   RefreshCw,
   Search,
@@ -36,6 +37,7 @@ import {
 } from "../lib/resource";
 import { Badge, ExternalLink, SourceTime } from "./ui";
 import NearbyStops from "./NearbyStops";
+import { getTransitWalkingDirections } from "../lib/transitDirections";
 import "./TransitPanel.css";
 
 const serviceDate = new Intl.DateTimeFormat("en-AU", {
@@ -103,11 +105,12 @@ export default function CommutePanel({
   const [directoryLoading, setDirectoryLoading] = useState(true);
   const [localRevision, setLocalRevision] = useState(0);
   const searchInput = useRef<HTMLInputElement>(null);
-  const departureRegion = useRef<HTMLElement | null>(null);
+  const selectedStopRegion = useRef<HTMLElement | null>(null);
   const focusNearbySelection = useRef(false);
   useEffect(() => {
     if (selection && focusNearbySelection.current) {
-      departureRegion.current?.focus();
+      selectedStopRegion.current?.focus({ preventScroll: true });
+      selectedStopRegion.current?.scrollIntoView?.({ block: "start", behavior: "instant" });
       focusNearbySelection.current = false;
     }
   }, [selection]);
@@ -160,6 +163,7 @@ export default function CommutePanel({
   const departureStopName = allPlatforms
     ? selection.stop.name.replace(/ · Platform .+$/, "")
     : selection?.stop.name;
+  const walkingDirections = selection ? getTransitWalkingDirections(selection.stop) : null;
 
   function save() {
     if (!selection || isSaved || saved.length >= 6) return;
@@ -363,6 +367,16 @@ export default function CommutePanel({
           {isSaved ? <Check size={18} /> : <BookmarkPlus size={18} />}
         </button>
       </div>
+      {walkingDirections && <nav className="stop-directions" aria-label="Walking directions">
+        <p className="stop-directions-title"><Footprints size={16} aria-hidden="true" />Walk to this stop</p>
+        <div className="stop-directions-links">
+          <ExternalLink href={walkingDirections.googleMaps}>Google Maps<span className="sr-only"> walking directions</span></ExternalLink>
+          <ExternalLink href={walkingDirections.appleMaps}>Apple Maps<span className="sr-only"> walking directions</span></ExternalLink>
+        </div>
+        <p className="stop-directions-note">{selection.stop.mode === "train"
+          ? "Directions use the mapped station point, which may be a platform. Check the station entrance and access."
+          : "Directions use this mapped boarding point. Check the stop’s side of the street."} Choose your starting point in Maps.</p>
+      </nav>}
       {saved.length >= 6 && !isSaved && (
         <p className="commute-help">
           Remove a saved stop to make room for another.
@@ -607,9 +621,9 @@ export default function CommutePanel({
         {savedStops}
         {nearbyStops}
         {stopSearch}
-        {selection && <div className="departure-board" role="region" aria-label="Selected stop">{selectedStop}</div>}
+        {selection && <div ref={(node) => { selectedStopRegion.current = node; }} tabIndex={-1} className="departure-board selected-stop-focus" role="region" aria-label="Selected stop">{selectedStop}</div>}
       </section>
-      <section ref={(node) => { departureRegion.current = node; }} tabIndex={-1} className="card tr-departures-panel" id="departures" aria-labelledby="tr-departures-title">
+      <section className="card tr-departures-panel" id="departures" aria-labelledby="tr-departures-title">
         <div className="card-heading"><div className="card-title"><TrainFront size={19} aria-hidden /><h2 id="tr-departures-title">Departures</h2></div><Badge tone={!configured ? "amber" : "neutral"}>{boardStatus}</Badge></div>
         <p className="card-subtitle">{selection ? `${departureStopName}${allPlatforms ? " · All platforms" : ""} · ${selection.directionName || "All directions"}` : "Your next train or tram, when live data is available."}</p>
         {departureContent}
@@ -634,7 +648,7 @@ export default function CommutePanel({
       {savedStops}
       {nearbyStops}
       {stopSearch}
-      {selection && <div ref={(node) => { departureRegion.current = node; }} tabIndex={-1} className="departure-board" aria-label="Selected stop departures">{selectedStop}{departureContent}</div>}
+      {selection && <div ref={(node) => { selectedStopRegion.current = node; }} tabIndex={-1} className="departure-board selected-stop-focus" aria-label="Selected stop departures">{selectedStop}{departureContent}</div>}
       {attribution}
     </div>
   );
