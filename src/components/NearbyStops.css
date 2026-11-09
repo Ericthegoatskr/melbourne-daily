@@ -1,4 +1,11 @@
 .nearby-transit { margin: 14px 0 20px; padding-bottom: 18px; border-bottom: 1px solid #e2d7ed; }
+.nearby-destination { display: flex; align-items: flex-start; gap: 9px; margin: 14px 0; padding: 12px 0; border-block: 1px solid #e2d7ed; color: #514061; }
+.nearby-destination > svg { flex: 0 0 auto; margin-top: 5px; }
+.nearby-destination > div { flex: 1; min-width: 0; }
+.nearby-destination span { display: block; color: #75627e; font-size: 11px; }
+.nearby-destination strong { display: block; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.nearby-destination .text-button { flex: 0 0 auto; font-size: 11px; }
+.nearby-stop-number { display: inline-grid; place-items: center; min-width: 22px; min-height: 22px; flex: 0 0 auto; border: 1px solid currentColor; border-radius: 5px; font-size: 11px; font-variant-numeric: tabular-nums; }
 .nearby-transit-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .nearby-location-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 13px; border: 1px solid #bba9cf; border-radius: 9px; background: #f4edf9; color: #514061; font: inherit; font-size: 12px; font-weight: 600; }
 .nearby-location-button:disabled { opacity: .65; cursor: progress; }
@@ -23,6 +30,8 @@
 .nearby-transit :is(button, select):focus-visible { outline: 2px solid #6d4789; outline-offset: 2px; }
 @media (hover: hover) { .nearby-stop-results button:hover, .nearby-location-button:not(:disabled):hover { background: #ede2f7; } }
 html[data-theme="navy"] .nearby-transit { border-color: var(--palette-line); }
+html[data-theme="navy"] .nearby-destination { border-color: var(--palette-line); color: var(--palette-ink); }
+html[data-theme="navy"] .nearby-destination span { color: var(--palette-secondary); }
 html[data-theme="navy"] .nearby-location-button { color: var(--palette-action); background: var(--palette-raised); border-color: var(--palette-selection-line); }
 html[data-theme="navy"] :is(.nearby-transit-privacy, .nearby-distance-note, .nearby-location-status, .nearby-radius, .nearby-stop-copy small, .nearby-stop-results > p) { color: var(--palette-secondary); }
 html[data-theme="navy"] .nearby-radius select { color: var(--palette-ink); border-color: var(--palette-line); background: var(--palette-raised); }
@@ -32,4 +41,4 @@ html[data-theme="navy"] .nearby-stop-results { scrollbar-color: var(--palette-se
 html[data-theme="navy"] .nearby-stop-results button[aria-pressed="true"] { background: var(--palette-selection); }
 html[data-theme="navy"] .nearby-transit :is(button, select):focus-visible { outline-color: var(--palette-action); }
 @media (hover: hover) { html[data-theme="navy"] .nearby-stop-results button:hover, html[data-theme="navy"] .nearby-location-button:not(:disabled):hover { background: var(--palette-selection); } }
-@media (max-width: 380px) { .nearby-stop-results button { flex-wrap: wrap; } .nearby-stop-distance { margin-left: 27px; } }
+@media (max-width: 380px) { .nearby-stop-results button { flex-wrap: wrap; } .nearby-stop-distance { margin-left: 58px; } .nearby-destination { flex-wrap: wrap; } .nearby-destination .text-button { margin-left: 27px; } }

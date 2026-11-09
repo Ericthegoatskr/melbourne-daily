@@ -1,0 +1,42 @@
+.transit-map-panel { margin: 14px 0; min-width: 0; }
+.transit-map-toggle-row { display: grid; gap: 7px; }
+.transit-map-toggle, .transit-map-toolbar button, .transit-map-message button { min-height: 44px; width: fit-content; padding: 8px 11px; border: 1px solid #bba9cf; border-radius: 9px; background: #faf8ff; color: #514061; font: inherit; font-size: 12px; font-weight: 600; }
+.transit-map-toggle { display: inline-flex; align-items: center; gap: 7px; }
+.transit-map-toggle-row p, .transit-map-note, .transit-map-message { margin: 0; font-size: 11px; line-height: 1.8; color: #75627e; overflow-wrap: anywhere; }
+.transit-map-message { padding: 12px 0; }
+.transit-map-message button { margin: 6px 0 0; display: block; }
+.transit-stop-map { margin-top: 10px; min-width: 0; }
+.transit-map-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 8px; }
+.transit-map-toolbar > span { min-width: 0; color: #514061; font-size: 12px; overflow-wrap: anywhere; }
+.transit-map-toolbar button { font-size: 11px; }
+.transit-map-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.transit-map-zoom { display: flex; gap: 4px; }
+.transit-map-zoom button { min-width: 44px; padding: 4px; font-size: 21px; line-height: 1; }
+.transit-map-canvas { height: 300px; width: 100%; border: 1px solid #d4cbe6; border-radius: 10px; isolation: isolate; z-index: 0; background: #e9e5eb; font: inherit; }
+.transit-map-canvas.is-unavailable { display: none; }
+.transit-map-canvas .leaflet-control-attribution { font-size: 10px; line-height: 1.5; background: #fffffff2; color: #332c40; }
+.transit-map-canvas .leaflet-control-attribution a { color: #503b76; }
+.transit-map-canvas .leaflet-popup-content { margin: 13px; color: #2b2848; font: inherit; }
+.transit-map-canvas .leaflet-popup-content-wrapper { border-radius: 10px; background: #faf8ff; }
+.transit-map-canvas .leaflet-popup-tip { background: #faf8ff; }
+.transit-map-canvas .leaflet-popup-close-button { min-width: 44px; min-height: 44px; color: #514061; }
+.transit-map-popup strong { display: block; padding-right: 31px; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.transit-map-popup p { font-size: 11px; line-height: 1.7; margin: 7px 0; }
+.transit-map-popup button { min-height: 44px; padding: 8px; width: 100%; border: 1px solid #b7a2d7; border-radius: 7px; background: #e5d9ff; color: #453071; font: inherit; font-size: 12px; line-height: 1.5; }
+.transit-map-stop, .transit-map-center { display: grid; place-items: center; background: none; border: 0; }
+.transit-map-stop-label { min-width: 31px; height: 31px; padding: 0 4px; display: grid; place-items: center; background: #fff; color: #453071; border: 2px solid #65508b; border-radius: 7px; font: 700 12px/1 system-ui, sans-serif; box-shadow: 0 2px 5px #20162b30; }
+.transit-map-tram .transit-map-stop-label { border-radius: 50%; border-color: #28725d; color: #175343; }
+.transit-map-stop.is-selected .transit-map-stop-label { color: #fff; background: #5f439c; border-color: #fff; outline: 2px solid #5f439c; }
+.transit-map-center-label { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; color: #fff; background: #98451c; border: 3px solid #fff; box-shadow: 0 2px 5px #20162b30; font: 700 12px/1 system-ui, sans-serif; }
+.transit-map-legend { display: flex; flex-wrap: wrap; gap: 5px 12px; margin: 9px 0 5px; font-size: 11px; line-height: 1.6; color: #514061; }
+.transit-map-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.transit-map-legend i { width: 10px; height: 10px; border: 2px solid #65508b; border-radius: 2px; }
+.transit-map-legend .tram-key { border-color: #28725d; border-radius: 50%; }
+.transit-map-legend .center-key { background: #98451c; border-color: #98451c; border-radius: 50%; }
+.transit-map-panel :is(button, a, [role="button"]):focus-visible { outline: 2px solid #6d4789; outline-offset: 2px; }
+html[data-theme="navy"] :is(.transit-map-toggle, .transit-map-toolbar button, .transit-map-message button) { color: var(--palette-action); border-color: var(--palette-selection-line); background: var(--palette-raised); }
+html[data-theme="navy"] :is(.transit-map-toggle-row p, .transit-map-note, .transit-map-message) { color: var(--palette-secondary); }
+html[data-theme="navy"] :is(.transit-map-toolbar > span, .transit-map-legend) { color: var(--palette-ink); }
+html[data-theme="navy"] .transit-map-canvas { border-color: var(--palette-line); }
+@media (hover: hover) { .transit-map-toggle:hover, .transit-map-toolbar button:hover, .transit-map-message button:hover { background: #ede2f7; } html[data-theme="navy"] :is(.transit-map-toggle, .transit-map-toolbar button, .transit-map-message button):hover { background: var(--palette-selection); } }
+@media (max-width: 520px) { .transit-map-canvas { height: 270px; } .transit-map-toolbar { align-items: flex-start; } }

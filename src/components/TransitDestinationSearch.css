@@ -1,0 +1,28 @@
+.transit-destination-search { margin-bottom: 18px; }
+.transit-destination-search form { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; }
+.transit-destination-field { flex: 1 1 220px; min-width: 0; }
+.transit-destination-field, .transit-landmark-field { display: grid; gap: 6px; color: #514061; font-size: 12px; }
+.transit-landmark-field { margin-top: 12px; }
+.transit-destination-field input, .transit-landmark-field select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #dcd1e7; border-radius: 9px; background: #fff; color: #514061; font: inherit; font-size: 16px; }
+.transit-destination-field input::placeholder { color: #75627e; }
+.transit-destination-submit { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 10px 12px; border: 1px solid #bba9cf; border-radius: 9px; background: #f4edf9; color: #514061; font: inherit; font-size: 12px; font-weight: 600; }
+.transit-destination-submit:disabled { opacity: .65; cursor: not-allowed; }
+.transit-destination-help, .transit-destination-status, .transit-destination-source { margin: 8px 0 0; color: #75627e; font-size: 11px; line-height: 1.8; overflow-wrap: anywhere; }
+.transit-destination-source a { display: inline-flex; align-items: center; gap: 4px; color: #514061; text-underline-offset: 3px; }
+.transit-destination-results { max-height: 250px; overflow-y: auto; overscroll-behavior-y: contain; margin-top: 10px; }
+.transit-destination-results ul { margin: 0; padding: 0; list-style: none; }
+.transit-destination-results li + li { border-top: 1px solid #e2d7ed; }
+.transit-destination-results button { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 44px; padding: 11px 8px; border: 0; border-radius: 6px; background: transparent; color: #514061; text-align: left; font: inherit; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.transit-destination-results button svg { flex: 0 0 auto; }
+.transit-destination-search :is(button, input, select, a):focus-visible { outline: 2px solid #6d4789; outline-offset: 2px; }
+@media (hover: hover) { .transit-destination-submit:not(:disabled):hover, .transit-destination-results button:hover { background: #ede2f7; } }
+html[data-theme="navy"] :is(.transit-destination-field, .transit-landmark-field) { color: var(--palette-ink); }
+html[data-theme="navy"] :is(.transit-destination-field input, .transit-landmark-field select) { color: var(--palette-ink); border-color: var(--palette-line); background: var(--palette-raised); }
+html[data-theme="navy"] :is(.transit-destination-help, .transit-destination-status, .transit-destination-source) { color: var(--palette-secondary); }
+html[data-theme="navy"] .transit-destination-field input::placeholder { color: var(--palette-secondary); }
+html[data-theme="navy"] .transit-destination-submit { color: var(--palette-action); border-color: var(--palette-selection-line); background: var(--palette-raised); }
+html[data-theme="navy"] .transit-destination-source a { color: var(--palette-action); }
+html[data-theme="navy"] .transit-destination-results button { color: var(--palette-ink); }
+html[data-theme="navy"] .transit-destination-results li + li { border-color: var(--palette-line); }
+html[data-theme="navy"] .transit-destination-search :is(button, input, select, a):focus-visible { outline-color: var(--palette-action); }
+@media (hover: hover) { html[data-theme="navy"] .transit-destination-submit:not(:disabled):hover, html[data-theme="navy"] .transit-destination-results button:hover { background: var(--palette-selection); } }

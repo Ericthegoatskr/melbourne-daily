@@ -199,7 +199,7 @@ export default function CommutePanel({
     directoryLoading={directoryLoading}
     directoryError={directoryError}
     onRetryDirectory={() => setLocalRevision((n) => n + 1)}
-    onSelect={(stop) => { focusNearbySelection.current = true; setSelection({ stop }); setEditing(false); setQuery(""); }}
+    onSelect={(stop, options) => { focusNearbySelection.current = options?.focusBoard !== false; setSelection({ stop }); setEditing(false); setQuery(""); }}
     selectedStop={selection?.stop}
     now={now}
   />;
