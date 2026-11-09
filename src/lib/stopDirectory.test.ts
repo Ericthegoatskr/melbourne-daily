@@ -13,7 +13,7 @@ afterEach(() => {
 });
 
 describe("official static stop directory", () => {
-  it("accepts the committed source snapshot with real, distinct train and tram boarding records", async () => {
+  it("accepts the committed source snapshot with distinct train, tram and bus boarding records", async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(snapshot)));
     const { fetchStopDirectory } = await import("./stopDirectory");
     const result = await fetchStopDirectory();
@@ -24,6 +24,7 @@ describe("official static stop directory", () => {
     expect(
       result.stops.filter((stop) => stop.mode === "tram").length,
     ).toBeGreaterThan(500);
+    expect(result.stops.filter((stop) => stop.mode === "bus").length).toBeGreaterThan(10_000);
     expect(
       new Set(result.stops.map((stop) => `${stop.mode}:${stop.id}`)).size,
     ).toBe(result.stops.length);
@@ -113,6 +114,10 @@ describe("official static stop directory", () => {
     const broad = findStops(directory, "st", "tram");
     expect(broad.length).toBeGreaterThan(0);
     expect(broad.length).toBeLessThanOrEqual(25);
+    const buses = findStops(directory, "Box Hill", "bus");
+    expect(buses.length).toBeGreaterThan(0);
+    expect(buses.every((stop) => stop.mode === "bus" && /box hill/i.test(stop.name))).toBe(true);
+    expect(findStops(directory, String(buses[0].id), "bus").some((stop) => stop.id === buses[0].id)).toBe(true);
     const empty: StopDirectory = { ...directory, stops: [] };
     expect(findStops(empty, "Richmond", "train")).toEqual([]);
   });

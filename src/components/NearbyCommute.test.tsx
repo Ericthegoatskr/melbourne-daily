@@ -185,7 +185,7 @@ describe("nearby stops in the shared commute flow", () => {
     expect(fetchTransitBoard).toHaveBeenCalledTimes(1);
     expect(JSON.parse(localStorage.getItem(STORE)!)).toEqual([savedSelection]);
     fireEvent.click(screen.getByRole("button", { name: "Find a stop" }));
-    fireEvent.change(screen.getByRole("searchbox", { name: "Find a station or tram stop" }), { target: { value: "Flinders" } });
+    fireEvent.change(screen.getByRole("searchbox", { name: "Find a station, tram or bus stop" }), { target: { value: "Flinders" } });
     expect(within(screen.getByRole("region", { name: "Matching stops" })).getByRole("button", { name: /Flinders Street/ })).toBeTruthy();
   });
 

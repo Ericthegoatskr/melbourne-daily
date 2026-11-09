@@ -183,7 +183,7 @@ async function openPanel() {
 
 async function chooseStation() {
   fireEvent.change(
-    screen.getByRole("searchbox", { name: "Find a station or tram stop" }),
+    screen.getByRole("searchbox", { name: "Find a station, tram or bus stop" }),
     { target: { value: "Flinders" } },
   );
   await act(async () => {
@@ -270,7 +270,7 @@ describe("commute search, saved selections and honest departures", () => {
   it("searches real station names and switches to separately identified tram boarding points without an API", async () => {
     await openPanel();
     const search = screen.getByRole("searchbox", {
-      name: "Find a station or tram stop",
+      name: "Find a station, tram or bus stop",
     });
     fireEvent.change(search, { target: { value: "Richmond" } });
     expect(
@@ -401,7 +401,7 @@ describe("commute search, saved selections and honest departures", () => {
     vi.mocked(transitApiConfigured).mockReturnValue(true);
     await openPanel();
     expect(
-      screen.getByRole("searchbox", { name: "Find a station or tram stop" }),
+      screen.getByRole("searchbox", { name: "Find a station, tram or bus stop" }),
     ).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^Remove / })).toBeNull();
     expect(screen.queryByText(station.name)).toBeNull();

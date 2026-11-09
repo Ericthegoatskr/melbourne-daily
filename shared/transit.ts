@@ -1,5 +1,5 @@
 /** Public, credential-free data contract shared by the browser and API. */
-export type TransitMode = "train" | "tram";
+export type TransitMode = "train" | "tram" | "bus";
 
 export interface TransitStop {
   id: number;

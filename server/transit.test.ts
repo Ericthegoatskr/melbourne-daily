@@ -114,6 +114,33 @@ function fixture() {
   };
 }
 
+function busFixture() {
+  const payload = fixture();
+  payload.stops["1071"] = {
+    stop_id: 1071,
+    stop_name: "Example Rd / Example St",
+    route_type: 2,
+  };
+  payload.routes["12"] = {
+    route_id: 12,
+    route_type: 2,
+    route_name: "Example interchange - Example shops",
+    route_number: "900",
+  };
+  payload.directions["5"].route_type = 2;
+  // PTV documents run.status and platform data as train-specific. Bus live
+  // estimates are identified by estimated_departure_utc, not run.status.
+  for (const run of Object.values(payload.runs)) run.status = "scheduled";
+  for (const departure of payload.departures) departure.platform_number = null;
+  return payload;
+}
+
+const busSelection: DeparturesQuery = {
+  stopId: 22001,
+  idScheme: "gtfs",
+  mode: "bus",
+};
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.useRealTimers();
@@ -491,5 +518,105 @@ describe("PTV payload normalization", () => {
         longitude: 144.967,
       },
     ]);
+  });
+});
+
+describe("bus departures and service updates", () => {
+  it("uses bus route type with GTFS identity and filters the expanded route and direction", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(checkedAt);
+    const payload = busFixture();
+    Object.assign(payload.routes, {
+      "13": { route_id: 13, route_type: 2, route_name: "Other bus route", route_number: "901" },
+    });
+    Object.assign(payload.directions, {
+      "other-bus": { route_id: 13, direction_id: 5, route_type: 2, direction_name: "Other shops" },
+      "other-mode": { route_id: 14, direction_id: 8, route_type: 1, direction_name: "Tram destination" },
+    });
+    payload.departures[0].route_id = 13;
+    payload.departures[1].direction_id = 7;
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", fetch);
+
+    const board = await getDepartures({ ...busSelection, routeId: 12, directionId: 5 }, env);
+
+    const url = new URL(fetch.mock.calls[0][0]);
+    expect(url.pathname).toBe("/v3/departures/route_type/2/stop/22001");
+    expect(url.searchParams.get("gtfs")).toBe("true");
+    expect(url.searchParams.get("direction_id")).toBe("5");
+    expect(url.searchParams.get("expand")).toBe("0");
+    expect(board).toMatchObject({ ...busSelection, upstreamStopId: 1071 });
+    expect(board.departures).toHaveLength(1);
+    expect(board.departures[0]).toMatchObject({
+      id: "22001:run-C:2026-11-06T22:12:00.000Z",
+      routeId: 12, directionId: 5, routeNumber: "900", status: "scheduled", estimatedAt: null,
+    });
+    expect(board.directions.map(({ routeId }) => routeId)).toEqual([12, 13]);
+    expect(JSON.stringify(board)).not.toMatch(/signature|devid|00000000-0000/);
+  });
+
+  it("keeps real bus estimates distinct from timetable-only departures", () => {
+    const board = parsePTVDepartures(busFixture(), busSelection, checkedAt);
+
+    expect(board.departures.map(({ status }) => status)).toEqual(["scheduled", "estimated", "scheduled"]);
+    expect(board.departures[1]).toMatchObject({
+      scheduledAt: "2026-11-06T22:03:00.000Z",
+      estimatedAt: "2026-11-06T22:08:00.000Z",
+      platform: null,
+    });
+    expect(board.departures[0].estimatedAt).toBeNull();
+    expect(board.departures[2].estimatedAt).toBeNull();
+  });
+
+  it.each([0, 1])("rejects a returned stop or route of another mode (%s), including empty boards", (wrongMode) => {
+    const payload = busFixture();
+    payload.stops["1071"].route_type = wrongMode;
+    expect(() => parsePTVDepartures(payload, busSelection, checkedAt)).toThrow(/incomplete/);
+    payload.departures = [];
+    expect(() => parsePTVDepartures(payload, busSelection, checkedAt)).toThrow(/incomplete/);
+
+    const wrongRoute = busFixture();
+    wrongRoute.routes["12"].route_type = wrongMode;
+    expect(() => parsePTVDepartures(wrongRoute, busSelection, checkedAt)).toThrow(/incomplete/);
+  });
+
+  it("matches bus service updates by selected route/direction and the returned PTV stop", () => {
+    const payload = busFixture();
+    payload.departures[0].disruption_ids = [];
+    Object.assign(payload.disruptions["9"].routes[0], { direction: { direction_id: 7 } });
+    Object.assign(payload.disruptions, {
+      "10": { ...payload.disruptions["9"], disruption_id: 10, routes: [{ route_id: 12, direction: { direction_id: 5 } }] },
+      "11": { ...payload.disruptions["9"], disruption_id: 11, routes: [], stops: [{ stop_id: 1071 }] },
+      "12": { ...payload.disruptions["9"], disruption_id: 12, routes: [], stops: [{ stop_id: busSelection.stopId }] },
+    });
+
+    const board = parsePTVDepartures(payload, { ...busSelection, routeId: 12, directionId: 5 }, checkedAt);
+    expect(board.disruptions.map(({ id }) => id)).toEqual([10, 11]);
+
+    payload.departures = [];
+    const emptyBoard = parsePTVDepartures(payload, busSelection, checkedAt);
+    expect(emptyBoard.upstreamStopId).toBe(1071);
+    expect(emptyBoard.disruptions.map(({ id }) => id)).toEqual([11]);
+  });
+
+  it("searches only bus routes and preserves the native PTV namespace", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(checkedAt);
+    const stop = {
+      stop_id: 1071, stop_name: "Example Rd / Example St", stop_suburb: "Example suburb",
+      stop_latitude: -37.91, stop_longitude: 145.13,
+    };
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      status: { health: 1 },
+      stops: [{ ...stop, route_type: 0 }, { ...stop, route_type: 1 }, { ...stop, route_type: 2 }],
+    })));
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await searchStops("Example", "bus", env);
+    expect(new URL(fetch.mock.calls[0][0]).searchParams.get("route_types")).toBe("2");
+    expect(result.stops).toEqual([{
+      id: 1071, idScheme: "ptv", mode: "bus", name: stop.stop_name,
+      suburb: stop.stop_suburb, latitude: stop.stop_latitude, longitude: stop.stop_longitude,
+    }]);
   });
 });

@@ -304,7 +304,7 @@ describe("nearby stop discovery", () => {
     render(<NearbyStops {...props()} />);
     await locate();
     expect(resultButtons()).toHaveLength(0);
-    expect(screen.getByText(/No train or tram stops found within 2 km in the Melbourne directory/)).toBeTruthy();
+    expect(screen.getByText(/No train, tram or bus stops found within 2 km in the Melbourne directory/)).toBeTruthy();
     expect(screen.getByText(/Try a wider radius, another mode or search by name/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Clear location" }));
     expect(screen.queryByRole("region", { name: "Nearby stops" })).toBeNull();

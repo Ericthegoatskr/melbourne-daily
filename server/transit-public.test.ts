@@ -70,6 +70,26 @@ it("does not expose EPA, health, search or arbitrary proxy routes even with extr
   expect(fetchEpaObservations).not.toHaveBeenCalled();
 });
 
+it("accepts a bus GTFS board and keeps route and direction filters inside the existing read-only endpoint", async () => {
+  const query = { stopId: 22001, idScheme: "gtfs" as const, mode: "bus" as const, routeId: 12, directionId: 5 };
+  const board = { ...query, upstreamStopId: 1071, checkedAt: new Date().toISOString(), directions: [], departures: [], disruptions: [] };
+  vi.mocked(getDepartures).mockResolvedValue(board);
+  const url = "/api/transit/departures?stopId=22001&idScheme=gtfs&mode=bus&routeId=12&directionId=5";
+
+  const response = await handlePublicTransitRequest(request(url), env);
+  expect(response.status).toBe(200);
+  expect(response.headers.get("access-control-allow-origin")).toBe(origin);
+  expect(await response.json()).toEqual(board);
+  expect(vi.mocked(getDepartures).mock.calls[0][0]).toEqual(query);
+
+  const write = await handlePublicTransitRequest(new Request(`https://transit.example.test${url}`, {
+    method: "POST", headers: { Origin: origin },
+  }), env);
+  expect(write.status).toBe(405);
+  expect(getDepartures).toHaveBeenCalledTimes(1);
+  expect(fetchEpaObservations).not.toHaveBeenCalled();
+});
+
 it("cannot activate PTV using an EPA key or private service token", async () => {
   const response = await handlePublicTransitRequest(request(), {
     ...env, PTV_API_KEY: undefined, PTV_DEV_ID: undefined,

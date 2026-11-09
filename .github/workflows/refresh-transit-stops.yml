@@ -25,7 +25,9 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: main
-      - name: Collect and validate the official train and tram directory
+      - name: Check stop collection and metropolitan coverage rules
+        run: python3 -m unittest discover -s scripts -p '*_test.py'
+      - name: Collect and validate the official train, tram and bus directory
         run: python3 scripts/update-transit-stops.py
       - name: Commit the changed directory only
         id: snapshot

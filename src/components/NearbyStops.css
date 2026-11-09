@@ -13,6 +13,7 @@
 .nearby-transit-privacy, .nearby-distance-note, .nearby-location-status { margin: 8px 0; color: #75627e; font-size: 11px; line-height: 1.8; overflow-wrap: anywhere; }
 .nearby-location-status:empty { display: none; }
 .nearby-transit-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 14px 0 8px; }
+.nearby-transit .segmented { flex-wrap: wrap; max-width: 100%; }
 .nearby-transit .segmented button { min-height: 44px; padding: 8px 12px; }
 .nearby-radius { display: grid; gap: 4px; color: #75627e; font-size: 11px; }
 .nearby-radius select { min-height: 44px; padding: 8px 10px; border: 1px solid #dcd1e7; border-radius: 9px; background: #fff; color: #514061; font: inherit; font-size: 16px; }

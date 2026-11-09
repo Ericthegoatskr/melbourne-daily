@@ -81,6 +81,21 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 describe("nearby stop map", () => {
+  it("gives buses distinct B markers and an accessible legend, preserving map selection and walking navigation", () => {
+    const bus: TransitStop = { ...train, id: 3, mode: "bus", name: "Library bus stop", longitude: 144.963 };
+    render(<TransitStopMap {...base} selectedStop={bus} nearby={[...base.nearby, { stop: bus, label: bus.name, distanceMetres: 400, platformCount: 1 }]} />);
+    expect(leaflet.markers.map((marker) => marker.element.textContent)).toEqual(["C", "T1", "R2", "B3"]);
+    expect(screen.getByText("B · Bus")).toBeTruthy();
+    const marker = screen.getByRole("button", { name: "3. Bus: Library bus stop, 400 m away" });
+    expect(marker.classList.contains("transit-map-bus")).toBe(true);
+    expect(marker.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.keyDown(marker, { key: "Enter" });
+    expect(base.onSelect).toHaveBeenCalledExactlyOnceWith(bus);
+    expect(screen.getByText("Bus · 400 m straight line from Library")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "View departures & walking directions" }));
+    expect(base.onViewDepartures).toHaveBeenCalledExactlyOnceWith(bus);
+  });
+
   it("uses attributed standard OSM tiles and numbered mode markers, retaining page scrolling on phones", () => {
     leaflet.mobile = true;
     render(<TransitStopMap {...base} />);

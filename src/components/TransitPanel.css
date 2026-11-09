@@ -35,7 +35,9 @@ html[data-theme="navy"] .stop-directions-links a:active { background: var(--pale
 .tr-workspace .remove-commute { min-width: 42px; }
 .tr-workspace .stop-search { margin-top: 10px; }
 .tr-workspace .stop-search > .segmented { margin-bottom: 14px; padding: 4px; }
-.tr-workspace .segmented button { min-height: 35px; padding: 7px 14px; font-size: 12px; }
+.stop-search > .segmented { flex-wrap: wrap; max-width: 100%; }
+.stop-search > .segmented button { min-height: 44px; }
+.tr-workspace .segmented button { min-height: 44px; padding: 7px 14px; font-size: 12px; }
 .tr-workspace .stop-search-input { min-height: 48px; padding: 12px 14px; border-radius: 12px; background: #fcfbfe; }
 .tr-workspace .stop-search-input input { font-size: 13px; }
 .tr-workspace .stop-search-input:focus-within { border-color: #d5977b; box-shadow: 0 0 0 3px #ed70430d; }

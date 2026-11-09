@@ -127,10 +127,10 @@ export function TransitStopMap({ center, nearby, radiusMetres, selectedStop, onS
 
     results.forEach((result, index) => {
       const { stop, label, distanceMetres } = result;
-      const mode = stop.mode === "train" ? "Train" : "Tram";
+      const mode = { train: "Train", tram: "Tram", bus: "Bus" }[stop.mode];
       const icon = document.createElement("span");
       icon.className = "transit-map-stop-label";
-      icon.textContent = `${stop.mode === "train" ? "T" : "R"}${index + 1}`;
+      icon.textContent = `${{ train: "T", tram: "R", bus: "B" }[stop.mode]}${index + 1}`;
       const marker = L.marker([stop.latitude, stop.longitude], {
         icon: L.divIcon({ html: icon, className: `transit-map-stop transit-map-${stop.mode}`, iconSize: [44, 44], iconAnchor: [22, 22] }),
         title: `${index + 1}. ${mode}: ${label}`, keyboard: true, riseOnHover: true,
@@ -197,7 +197,7 @@ export function TransitStopMap({ center, nearby, radiusMetres, selectedStop, onS
     {failed && <p role="status" className="transit-map-message">The map could not load. The stop list and departures still work. <button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry stop map</button></p>}
     <div ref={container} className={`transit-map-canvas${failed ? " is-unavailable" : ""}`} role="region" aria-label={`Nearby stop map around ${center.label}`} />
     {tileError && !failed && <p role="status" className="transit-map-message">{hasLoadedTiles ? "Some map tiles could not load." : "The basemap is unavailable."} The numbered markers and stop list still work. <button type="button" onClick={() => { setTileError(false); setHasLoadedTiles(false); tiles.current?.redraw(); }}>Retry map tiles</button></p>}
-    <div className="transit-map-legend"><span><i className="train-key" aria-hidden />T · Train</span><span><i className="tram-key" aria-hidden />R · Tram</span><span><i className="center-key" aria-hidden />C · Search centre</span></div>
+    <div className="transit-map-legend"><span><i className="train-key" aria-hidden />T · Train</span><span><i className="tram-key" aria-hidden />R · Tram</span><span><i className="bus-key" aria-hidden />B · Bus</span><span><i className="center-key" aria-hidden />C · Search centre</span></div>
     <p className="transit-map-note">Numbers match the list. The dashed circle is the {radiusMetres / 1000} km search radius, not a walking route. Use the zoom buttons or pinch. On phones, one-finger swipes scroll the page.</p>
   </div>;
 }

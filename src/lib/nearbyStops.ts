@@ -1,5 +1,5 @@
 import type { StopDirectory } from "./stopDirectory";
-import type { TransitStop } from "./transit";
+import type { TransitMode, TransitStop } from "./transit";
 
 export interface NearbyStop {
   stop: TransitStop;
@@ -11,7 +11,7 @@ export interface NearbyStop {
 type Coordinates = { latitude: number; longitude: number };
 type NearbyOptions = {
   radiusMetres?: number;
-  mode?: "all" | "train" | "tram";
+  mode?: "all" | TransitMode;
   limit?: number;
 };
 
@@ -65,7 +65,7 @@ export function findNearbyStops(
     radius < 0 ||
     !Number.isFinite(limit) ||
     limit < 1 ||
-    !["all", "train", "tram"].includes(mode)
+    !["all", "train", "tram", "bus"].includes(mode)
   ) {
     return [];
   }
@@ -94,7 +94,7 @@ export function findNearbyStops(
   // Compare with that representative, rather than chaining neighbouring points,
   // so same-name stations farther away cannot join through intermediate stops.
   for (const candidate of candidates) {
-    if (candidate.stop.mode === "tram") {
+    if (candidate.stop.mode !== "train") {
       groups.push(candidate);
       continue;
     }

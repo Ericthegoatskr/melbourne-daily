@@ -26,12 +26,14 @@
 .transit-map-stop, .transit-map-center { display: grid; place-items: center; background: none; border: 0; }
 .transit-map-stop-label { min-width: 31px; height: 31px; padding: 0 4px; display: grid; place-items: center; background: #fff; color: #453071; border: 2px solid #65508b; border-radius: 7px; font: 700 12px/1 system-ui, sans-serif; box-shadow: 0 2px 5px #20162b30; }
 .transit-map-tram .transit-map-stop-label { border-radius: 50%; border-color: #28725d; color: #175343; }
+.transit-map-bus .transit-map-stop-label { border-radius: 3px 12px 3px 12px; border-color: #226989; color: #164a64; }
 .transit-map-stop.is-selected .transit-map-stop-label { color: #fff; background: #5f439c; border-color: #fff; outline: 2px solid #5f439c; }
 .transit-map-center-label { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; color: #fff; background: #98451c; border: 3px solid #fff; box-shadow: 0 2px 5px #20162b30; font: 700 12px/1 system-ui, sans-serif; }
 .transit-map-legend { display: flex; flex-wrap: wrap; gap: 5px 12px; margin: 9px 0 5px; font-size: 11px; line-height: 1.6; color: #514061; }
 .transit-map-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .transit-map-legend i { width: 10px; height: 10px; border: 2px solid #65508b; border-radius: 2px; }
 .transit-map-legend .tram-key { border-color: #28725d; border-radius: 50%; }
+.transit-map-legend .bus-key { border-color: #226989; border-radius: 1px 5px 1px 5px; }
 .transit-map-legend .center-key { background: #98451c; border-color: #98451c; border-radius: 50%; }
 .transit-map-panel :is(button, a, [role="button"]):focus-visible { outline: 2px solid #6d4789; outline-offset: 2px; }
 html[data-theme="navy"] :is(.transit-map-toggle, .transit-map-toolbar button, .transit-map-message button) { color: var(--palette-action); border-color: var(--palette-selection-line); background: var(--palette-raised); }

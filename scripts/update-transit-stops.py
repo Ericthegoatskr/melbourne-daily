@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Build the public Metro train/tram stop directory from DTP's GTFS archive.
+"""Build the public Melbourne train/tram/bus stop directory from DTP GTFS.
 
 The weekly GitHub Actions workflow runs this command; it can also run manually:
   python3 scripts/update-transit-stops.py
 
-Only the Metro train and tram nested archives are downloaded, via HTTP Range.
+Only the Metro train/tram and public bus subarchives are downloaded, via HTTP
+Range. Bus stops are limited to the same 31 metropolitan councils as destination
+search. Regional coach and SkyBus archives are not included.
 Raw GTFS files live in a temporary directory and are never written to the repo.
 Optional --cache-dir /private/tmp/melbourne-daily-gtfs keeps a source-versioned
 download cache between local investigations. --inspect validates without writing.
@@ -32,7 +34,16 @@ import zipfile
 CATALOGUE_URL = "https://opendata.transport.vic.gov.au/api/3/action/package_show?id=gtfs-schedule"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_PATH = PROJECT_ROOT / "public/data/transport-stops.json"
-MODES = {"2/google_transit.zip": "train", "3/google_transit.zip": "tram"}
+BOUNDARY_PATH = PROJECT_ROOT / "src/data/melbourneMetroBoundary.json"
+# Official folder mapping: https://opendata.transport.vic.gov.au/dataset/gtfs-schedule
+# Folder 4 includes Myki metropolitan/regional town buses and Night Bus; folder 6
+# adds regional public buses serving outer metropolitan areas. Neither is coach.
+MODES = {
+    "2/google_transit.zip": "train",
+    "3/google_transit.zip": "tram",
+    "4/google_transit.zip": "bus",
+    "6/google_transit.zip": "bus",
+}
 USER_AGENT = "MelbourneDailyDataCollector/1.0 (+https://github.com/Ericthegoatskr/melbourne-daily)"
 MAX_RANGE_BYTES = 100 * 1024 * 1024
 
@@ -116,11 +127,55 @@ def gtfs_rows(archive: zipfile.ZipFile, name: str):
             yield from csv.DictReader(text)
 
 
+def metro_polygons() -> list[tuple]:
+    """Read the shared Vicmap discovery boundary, including any polygon holes."""
+    boundary = json.loads(BOUNDARY_PATH.read_text(encoding="utf-8"))
+    if len(boundary["features"]) != 31:
+        raise ValueError("Expected the shared 31-council Melbourne boundary")
+    polygons = []
+    for feature in boundary["features"]:
+        geometry = feature["geometry"]
+        if geometry["type"] not in ("Polygon", "MultiPolygon"):
+            raise ValueError("Unexpected Melbourne boundary geometry")
+        parts = [geometry["coordinates"]] if geometry["type"] == "Polygon" else geometry["coordinates"]
+        for rings in parts:
+            west, east = min(point[0] for point in rings[0]), max(point[0] for point in rings[0])
+            south, north = min(point[1] for point in rings[0]), max(point[1] for point in rings[0])
+            polygons.append((rings, west, east, south, north))
+    return polygons
+
+
+def in_ring(x: float, y: float, ring: list[list[float]]) -> bool:
+    inside = False
+    previous = ring[-1]
+    for point in ring:
+        xi, yi = point
+        xj, yj = previous
+        if (yi > y) != (yj > y) and x < (xj - xi) * (y - yi) / (yj - yi) + xi:
+            inside = not inside
+        previous = point
+    return inside
+
+
+def in_metro(latitude: float, longitude: float, polygons: list[tuple]) -> bool:
+    return any(
+        west <= longitude <= east and south <= latitude <= north
+        and in_ring(longitude, latitude, rings[0])
+        and not any(in_ring(longitude, latitude, ring) for ring in rings[1:])
+        for rings, west, east, south, north in polygons
+    )
+
+
 def build_stops(path: Path, mode: str) -> tuple[list[dict], dict]:
+    polygons = metro_polygons() if mode == "bus" else []
     with zipfile.ZipFile(path) as archive:
         # Parent stations, entrances and pathways that never receive a trip are
-        # deliberately not selectable boarding stops.
-        serving_ids = {row["stop_id"] for row in gtfs_rows(archive, "stop_times.txt")}
+        # deliberately not selectable boarding stops. For buses also exclude
+        # stops that only allow drop-off, while preserving existing rail records.
+        serving_ids = {
+            row["stop_id"] for row in gtfs_rows(archive, "stop_times.txt")
+            if mode != "bus" or row.get("pickup_type", "") != "1"
+        }
         stops = []
         seen = set()
         non_numeric = []
@@ -135,7 +190,9 @@ def build_stops(path: Path, mode: str) -> tuple[list[dict], dict]:
                 raise ValueError(f"Invalid coordinates for serving stop {raw_id}") from error
             if not math.isfinite(latitude) or not math.isfinite(longitude):
                 raise ValueError(f"Non-finite coordinates for serving stop {raw_id}")
-            if not (-38.6 <= latitude <= -37.3 and 144.3 <= longitude <= 145.7):
+            if not (-38.6 <= latitude <= -37.3 and 144.3 <= longitude <= 146.25):
+                continue
+            if mode == "bus" and not in_metro(latitude, longitude, polygons):
                 continue
             if not re.fullmatch(r"\d+", raw_id) or not 0 <= int(raw_id) <= 2_147_483_647:
                 non_numeric.append(raw_id)
@@ -153,6 +210,10 @@ def build_stops(path: Path, mode: str) -> tuple[list[dict], dict]:
                 replacement_count += 1
                 if "replacement" not in name.lower():
                     name += " (rail replacement bus)"
+            elif mode == "bus" and platform:
+                # DTP bus platform codes already contain rider-facing labels
+                # such as "Bay 3"; do not prefix them with "Platform" again.
+                name += f" · {platform}"
             elif platform and "platform" not in name.casefold():
                 name += f" · Platform {platform}"
             stops.append({
@@ -166,10 +227,21 @@ def build_stops(path: Path, mode: str) -> tuple[list[dict], dict]:
             })
         if non_numeric:
             raise ValueError(f"PTV's integer stop contract cannot represent these {mode} GTFS IDs: {non_numeric[:12]}")
-        if len(stops) < 100:
-            raise ValueError(f"Implausibly small {mode} directory: {len(stops)} stops")
         stops.sort(key=lambda stop: (stop["name"].casefold(), stop["id"]))
         return stops, {"mode": mode, "servingIds": len(serving_ids), "includedStops": len(stops), "replacementStops": replacement_count}
+
+
+def merge_stops(groups: list[list[dict]]) -> list[dict]:
+    """One boarding pole can be served by multiple bus archives, but IDs must agree."""
+    unique = {}
+    for stops in groups:
+        for stop in stops:
+            key = (stop["mode"], stop["id"])
+            if key in unique and unique[key] != stop:
+                raise ValueError(f"Conflicting {key[0]} stop identifier {key[1]} across GTFS archives")
+            unique[key] = stop
+    modes = ("train", "tram", "bus")
+    return sorted(unique.values(), key=lambda stop: (modes.index(stop["mode"]), stop["name"].casefold(), stop["id"]))
 
 
 def collect(cache_dir: Path, inspect_only: bool, output: Path) -> None:
@@ -187,13 +259,15 @@ def collect(cache_dir: Path, inspect_only: bool, output: Path) -> None:
     remote = RemoteZip(source_url)
     version = hashlib.sha256(f"{source_url}|{remote.modified}|{remote.etag}|{remote.length}".encode()).hexdigest()[:20]
     cache_dir.mkdir(parents=True, exist_ok=True)
-    result = []
+    groups = []
     with zipfile.ZipFile(remote) as outer:
         for member, mode in MODES.items():
             info = outer.getinfo(member)
             if info.file_size > MAX_RANGE_BYTES or info.compress_size > MAX_RANGE_BYTES:
                 raise ValueError(f"Unexpectedly large nested archive: {member}")
-            cached = cache_dir / f"{version}-{mode}.zip"
+            # Bus archives share a mode, so their cache keys must include folder.
+            cache_key = mode if mode != "bus" else f"folder-{member.split('/')[0]}"
+            cached = cache_dir / f"{version}-{cache_key}.zip"
             if not cached.exists():
                 print(f"Downloading {member}: {info.compress_size:,} compressed bytes", flush=True)
                 data = outer.read(member)  # zipfile verifies the outer entry CRC.
@@ -203,8 +277,13 @@ def collect(cache_dir: Path, inspect_only: bool, output: Path) -> None:
             if cached.stat().st_size != info.file_size:
                 raise ValueError(f"Cached {mode} archive has an invalid length")
             stops, statistics = build_stops(cached, mode)
-            result.extend(stops)
-            print(json.dumps(statistics), flush=True)
+            groups.append(stops)
+            print(json.dumps({"archive": member, **statistics}), flush=True)
+    result = merge_stops(groups)
+    counts = {mode: sum(stop["mode"] == mode for stop in result) for mode in set(MODES.values())}
+    for mode, count in counts.items():
+        if count < (1000 if mode == "bus" else 100):
+            raise ValueError(f"Implausibly small {mode} directory: {count} stops")
     payload = {
         "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
         "sourceUpdatedAt": remote.source_updated_at.isoformat().replace("+00:00", "Z"),
@@ -212,7 +291,7 @@ def collect(cache_dir: Path, inspect_only: bool, output: Path) -> None:
         "stops": result,
     }
     encoded = (json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n").encode()
-    print(json.dumps({"sourceUpdatedAt": payload["sourceUpdatedAt"], "stops": len(result), "bytes": len(encoded), "inspectOnly": inspect_only}), flush=True)
+    print(json.dumps({"sourceUpdatedAt": payload["sourceUpdatedAt"], "stops": len(result), "counts": counts, "bytes": len(encoded), "inspectOnly": inspect_only}), flush=True)
     if not inspect_only:
         # A repeated check of the same source must not create a timestamp-only
         # bot commit. generatedAt remains the time this snapshot was produced.

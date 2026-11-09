@@ -82,9 +82,11 @@ function providerHealth(raw: Record<string, unknown>) {
       "The transport provider is temporarily unavailable.",
     );
 }
-const routeType = (mode: TransitMode): 0 | 1 => {
-  if (mode !== "train" && mode !== "tram") throw badQuery();
-  return mode === "train" ? 0 : 1;
+const routeType = (mode: TransitMode): 0 | 1 | 2 => {
+  if (mode === "train") return 0;
+  if (mode === "tram") return 1;
+  if (mode === "bus") return 2;
+  throw badQuery();
 };
 function queryId(value: number | undefined, required = false) {
   if (value === undefined && !required) return;
@@ -328,6 +330,7 @@ export function parsePTVDepartures(
     const directionId = integer(value.direction_id);
     if (value.route_type !== expectedRouteType) continue;
     const route = object(routes[String(routeId)]);
+    if (route.route_type !== expectedRouteType) throw badData();
     const key = `${routeId}:${directionId}`;
     if (directionKeys.has(key)) continue;
     directionKeys.add(key);

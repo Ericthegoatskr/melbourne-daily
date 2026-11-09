@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   BookmarkPlus,
+  BusFront,
   Check,
   ChevronDown,
   Clock3,
@@ -45,6 +46,12 @@ const serviceDate = new Intl.DateTimeFormat("en-AU", {
   dateStyle: "medium",
   timeStyle: "short",
 });
+const modeLabels: Record<TransitMode, string> = { train: "Metro train", tram: "Tram", bus: "Bus" };
+const modeIcons = { train: TrainFront, tram: TramFront, bus: BusFront };
+function ModeIcon({ mode, size }: { mode: TransitMode; size: number }) {
+  const Icon = modeIcons[mode];
+  return <Icon size={size} aria-hidden="true" />;
+}
 
 function selectionId(item: TransitSelection) {
   return `${item.stop.idScheme}:${item.stop.mode}:${item.stop.id}:${item.routeId ?? "all"}:${item.directionId ?? "all"}`;
@@ -219,11 +226,7 @@ export default function CommutePanel({
                 }}
               >
                 <span>
-                  {item.stop.mode === "tram" ? (
-                    <TramFront size={14} />
-                  ) : (
-                    <TrainFront size={14} />
-                  )}
+                  <ModeIcon mode={item.stop.mode} size={14} />
                   {item.stop.name}
                 </span>
                 <small>{item.directionName || "All directions"}</small>
@@ -258,10 +261,13 @@ export default function CommutePanel({
             >
               Trams
             </button>
+            <button aria-pressed={mode === "bus"} onClick={() => setMode("bus")}>
+              Buses
+            </button>
           </div>
           <label className="stop-search-input">
             <Search size={16} />
-            <span className="sr-only">Find a station or tram stop</span>
+            <span className="sr-only">Find a station, tram or bus stop</span>
             <input
               ref={searchInput}
               type="search"
@@ -271,7 +277,7 @@ export default function CommutePanel({
               placeholder={
                 mode === "train"
                   ? "Search station, e.g. Richmond"
-                  : "Search tram stop or stop number"
+                  : mode === "tram" ? "Search tram stop or stop number" : "Search bus stop, street or stop number"
               }
               autoComplete="off"
             />
@@ -311,7 +317,7 @@ export default function CommutePanel({
                       <strong>{stop.name}</strong>
                       <small>
                         {stop.suburb ||
-                          (stop.mode === "train" ? "Metro train" : "Tram")}{" "}
+                          modeLabels[stop.mode]}{" "}
                         · Stop {stop.id}
                       </small>
                     </span>
@@ -327,7 +333,9 @@ export default function CommutePanel({
           <p className="commute-help">
             Save up to six stops on this device. Route and direction choices
             appear when departures are available. Train boards cover all
-            platforms; tram boards may include both directions.
+            platforms; tram boards may include both directions. Bus boards may
+            include other bays or both directions. Check the route, destination
+            and boarding bay.
           </p>
           {directory && (
             <small className="directory-date">
@@ -351,7 +359,7 @@ export default function CommutePanel({
         <div>
           <strong>{selection.stop.name}</strong>
           <span>
-            {selection.stop.mode === "train" ? "Metro train" : "Tram"} ·{" "}
+            {modeLabels[selection.stop.mode]} ·{" "}
             {allPlatforms && "All platforms · "}
             {selection.directionName || "All directions"}
           </span>
@@ -375,6 +383,8 @@ export default function CommutePanel({
         </div>
         <p className="stop-directions-note">{selection.stop.mode === "train"
           ? "Directions use the mapped station point, which may be a platform. Check the station entrance and access."
+          : selection.stop.mode === "bus"
+          ? "Directions use this mapped bus boarding point. Confirm your service’s boarding bay and street-side signage."
           : "Directions use this mapped boarding point. Check the stop’s side of the street."} Choose your starting point in Maps.</p>
       </nav>}
       {saved.length >= 6 && !isSaved && (
@@ -579,7 +589,7 @@ export default function CommutePanel({
       </div>
     </div>
   ) : !selection ? (
-    <div className="tr-panel-empty" role="status"><TrainFront size={30} aria-hidden /><strong>Choose your next stop.</strong><p>Search for a station or tram stop to see its departures here.</p></div>
+    <div className="tr-panel-empty" role="status"><TrainFront size={30} aria-hidden /><strong>Choose your next stop.</strong><p>Search for a station, tram or bus stop to see its departures here.</p></div>
   ) : resource.loading && !board ? (
     <p className="commute-help" role="status">Checking departures…</p>
   ) : !board ? (
@@ -598,6 +608,7 @@ export default function CommutePanel({
         ) : "Showing your selected route and direction. Check the destination before boarding."}
       </p>
     )}
+    {selection.stop.mode === "bus" && <p className="commute-help"><strong>Check your bus boarding bay.</strong> PTV may include other bays or both directions. Check the route, destination and boarding bay. Choose Route &amp; direction to narrow the board.</p>}
     {departureRows}{!dashboard && serviceAlerts}{boardFooter}
   </>;
 
@@ -624,8 +635,8 @@ export default function CommutePanel({
         {selection && <div ref={(node) => { selectedStopRegion.current = node; }} tabIndex={-1} className="departure-board selected-stop-focus" role="region" aria-label="Selected stop">{selectedStop}</div>}
       </section>
       <section className="card tr-departures-panel" id="departures" aria-labelledby="tr-departures-title">
-        <div className="card-heading"><div className="card-title"><TrainFront size={19} aria-hidden /><h2 id="tr-departures-title">Departures</h2></div><Badge tone={!configured ? "amber" : "neutral"}>{boardStatus}</Badge></div>
-        <p className="card-subtitle">{selection ? `${departureStopName}${allPlatforms ? " · All platforms" : ""} · ${selection.directionName || "All directions"}` : "Your next train or tram, when live data is available."}</p>
+        <div className="card-heading"><div className="card-title"><ModeIcon mode={selection?.stop.mode ?? "train"} size={19} /><h2 id="tr-departures-title">Departures</h2></div><Badge tone={!configured ? "amber" : "neutral"}>{boardStatus}</Badge></div>
+        <p className="card-subtitle">{selection ? `${departureStopName}${allPlatforms ? " · All platforms" : ""} · ${selection.directionName || "All directions"}` : "Your next train, tram or bus, with live estimates where available."}</p>
         {departureContent}
       </section>
       <section className="card tr-services-panel" id="services" aria-labelledby="tr-services-title">

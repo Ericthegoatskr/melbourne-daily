@@ -56,6 +56,17 @@ describe("nearby stops", () => {
     expect(results.map((item) => formatStopDistance(item.distanceMetres))).toEqual(["10 m", "10 m"]);
   });
 
+  it("finds both Monash Research Way bus poles independently in the published directory", () => {
+    const source = directory(snapshot.stops.map(parseTransitStop));
+    const pole = source.stops.find((stop) => stop.mode === "bus" && stop.id === 22447)!;
+    const buses = findNearbyStops(source, pole, { mode: "bus", radiusMetres: 1000 });
+    expect(buses[0].stop).toBe(pole);
+    expect(buses[0].distanceMetres).toBe(0);
+    expect(buses.some(({ stop }) => stop.id === 22446)).toBe(true);
+    expect(buses.every(({ stop, platformCount }) => stop.mode === "bus" && platformCount === 1)).toBe(true);
+    expect(buses.map(({ distanceMetres }) => distanceMetres)).toEqual(buses.map(({ distanceMetres }) => distanceMetres).sort((a, b) => a - b));
+  });
+
   it("uses mode then numeric ID for equal-distance ties independent of input order", () => {
     const input = [
       stop(0, 0),
@@ -139,6 +150,21 @@ describe("nearby stops", () => {
     const results = findNearbyStops(directory(stops), origin);
     expect(results.map((item) => [item.stop.id, item.platformCount])).toEqual([[0, 2], [2, 1]]);
     expect(findNearbyStops(directory([...stops].reverse()), origin)).toEqual(results);
+  });
+
+  it("keeps same-name bus boarding points distinct and filters buses without losing distance order", () => {
+    const source = directory([
+      stop(7, 80, { mode: "bus", name: "Central / Main St" }),
+      stop(8, 10, { mode: "bus", name: "Central / Main St" }),
+      stop(9, 20, { mode: "train", name: "Central Station · Platform 1" }),
+      stop(10, 30, { mode: "tram", name: "Central / Main St" }),
+      stop(11, 5, { mode: "bus", name: "Central Rail Replacement Bus Stop" }),
+    ]);
+    const buses = findNearbyStops(source, origin, { mode: "bus" });
+    expect(buses.map(({ stop }) => stop.id)).toEqual([8, 7]);
+    expect(buses.every(({ platformCount }) => platformCount === 1)).toBe(true);
+    expect(findNearbyStops(source, origin).map(({ stop }) => stop.id)).toEqual([8, 9, 10, 7]);
+    expect(findNearbyStops(source, origin, { mode: "bus", radiusMetres: 50 }).map(({ stop }) => stop.id)).toEqual([8]);
   });
 
   it.each([

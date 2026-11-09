@@ -239,7 +239,7 @@ describe("destination discovery in the shared commute flow", () => {
     expect(screen.queryByRole("region", { name: "Nearby stops" })).toBeNull();
     fireEvent.click(within(screen.getByRole("region", { name: "Matching destinations" })).getByRole("button", { name: distant.label }));
     fireEvent.change(screen.getByRole("combobox", { name: "Nearby search radius" }), { target: { value: "1000" } });
-    expect(within(screen.getByRole("region", { name: "Nearby stops" })).getByText(/No train or tram stops found within 1 km/)).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Nearby stops" })).getByText(/No train, tram or bus stops found within 1 km/)).toBeTruthy();
     expect(screen.getByText("Frankston", { selector: "strong" })).toBeTruthy();
     expect(screen.getByText("Train service update")).toBeTruthy();
     expect(fetchTransitBoard).toHaveBeenCalledTimes(1);

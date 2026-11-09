@@ -221,6 +221,24 @@ describe("live transport client", () => {
     expect(error.message).not.toContain("secret");
   });
 
+  it("fetches a bus GTFS board with route filters and preserves the scheduled/live distinction", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+    const response = { ...fixture(), mode: "bus", idScheme: "gtfs", stopId: 12345, upstreamStopId: 23456 };
+    response.departures.push({ ...response.departures[0], id: "live-bus", estimatedAt: "2026-11-06T22:02:00.000Z", status: "estimated" });
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(response)));
+    vi.stubGlobal("fetch", fetch);
+    const selection = { stop: { ...stop, id: 12345, idScheme: "gtfs" as const, mode: "bus" as const }, routeId: 12, directionId: 1 };
+    const data = await fetchTransitBoard(selection, undefined, "https://api.example.test");
+    const url = new URL(fetch.mock.calls[0][0]);
+    expect(Object.fromEntries(url.searchParams)).toEqual({ stopId: "12345", idScheme: "gtfs", mode: "bus", routeId: "12", directionId: "1" });
+    expect(data.departures.map(({ status }) => status)).toEqual(["scheduled", "estimated"]);
+    expect(data.upstreamStopId).toBe(23456);
+    expect(fetch.mock.calls[0][1].credentials).toBe("omit");
+    fetch.mockResolvedValue(new Response(JSON.stringify({ ...response, mode: "tram" })));
+    await expect(fetchTransitBoard(selection, undefined, "https://api.example.test")).rejects.toThrow(/invalid/);
+  });
+
   it("rejects ambiguous numeric searches and filters response mode", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(now);

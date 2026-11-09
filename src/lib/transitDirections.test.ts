@@ -3,7 +3,7 @@ import snapshot from "../../public/data/transport-stops.json";
 import { getTransitWalkingDirections } from "./transitDirections";
 
 describe("walking directions to a transit stop", () => {
-  it.each([11213, 18090, 18175])("uses the precise public coordinates of boarding point %i", (id) => {
+  it.each([11213, 18090, 18175, 19649, 22447, 22446])("uses the precise public coordinates of boarding point %i", (id) => {
     const stop = snapshot.stops.find((item) => item.id === id)!;
     const links = getTransitWalkingDirections(stop)!;
     const google = new URL(links.googleMaps);

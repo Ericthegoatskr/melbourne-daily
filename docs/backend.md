@@ -187,3 +187,25 @@ This earlier check verified the private EPA backend; the public snapshot activat
 Optional diagnostics: compare a simultaneous official-website departure board and capture a live cancellation when one is available. These observations were not part of the completed live check and are not required release gates.
 
 The owner completed EPA registration and secret entry directly in the provider portal and Sites settings. No key values belong in this repository, frontend assets or verification records.
+
+## Greater Melbourne bus activation — 9 November 2026
+
+The existing public transport-only Sites service was updated without changing its audience or runtime Secrets. Saved version **3** (`appgprj_6af16e43fb98819195767987520ce362~appgver_7d0994f0364481918a4d6acbe1437f9b`), source `5626a6644d2cfefa9ed1400fa3432d3588892987`, deployed successfully as `appgdep_6af1a7b35eb481918968bbbaad5e88e1` at 22:00 AEDT. Environment revision remains 1. The canonical worker source is versioned in this GitHub repository; the generated hosting worker is also committed in the Sites source repository.
+
+Anonymous verification against the deployed endpoint returned HTTP 200 for:
+
+| GTFS boarding point | PTV board | Observed response |
+| --- | --- | --- |
+| Bus Box Hill Bay 3, `19649` | `14035` | Estimated and scheduled departures, 17 directions, 4 related service updates |
+| Bus Monash Research Way, `22447` | `13496` | Scheduled departures, 2 directions, no returned updates |
+| Bus Werribee Bay B, `20971` | `10564` | Estimated and scheduled departures, 9 directions, 3 related updates |
+| Train Flinders Street, `11212` | `1071` | Estimated/scheduled departures and related updates retained |
+| Tram `19497` | `2206` | Estimated/scheduled departures retained |
+
+These counts are a point-in-time check, not a service guarantee. Bus route/direction filtering was also verified against actual returned IDs. `/api/health` and `/api/epa/observations` still return 404 on this dedicated host; the original EPA backend remains private. Provider credentials are absent from browser requests and public build artifacts.
+
+Box Hill bays `19648`, `19649` and `19650` all resolve to PTV board `14035`; opposite Monash poles `22446` and `22447` both resolve to `13496`. Accordingly, a bus board may cover other bays or both directions. The UI tells travellers to check the route, destination and actual boarding bay. Walking links retain the chosen GTFS point and do not transmit the device's starting coordinates. No single-bay arrival claim is made.
+
+Bus discovery uses 18,970 distinct public boarding points across the 31 metropolitan council areas. The original 541 train and 1,624 tram records are unchanged. Normal bus boards use PTV route type 2; dedicated Night Bus type 4 departures are outside this release. Live estimates are optional, and scheduled times remain explicitly labelled.
+
+Release validation: 553 TypeScript/UI/backend tests, nine Python collector tests, TypeScript checking and all four builds passed. Local browser checks used a clearly labelled simulated location and real public PTV responses: GPS bus filtering, Box Hill street-address search, landmark selection, separate bus bays, B map markers, map-to-board focus, route selection, service updates and walking destinations. Mobile (385 px content width) and desktop (1,440 px) layouts had no horizontal overflow; no browser console errors were observed.

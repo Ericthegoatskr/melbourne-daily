@@ -52,7 +52,7 @@ function id(raw: unknown): number {
   return raw;
 }
 function mode(raw: unknown): TransitMode {
-  if (raw !== "train" && raw !== "tram") throw invalid();
+  if (raw !== "train" && raw !== "tram" && raw !== "bus") throw invalid();
   return raw;
 }
 function idScheme(raw: unknown): "ptv" | "gtfs" {

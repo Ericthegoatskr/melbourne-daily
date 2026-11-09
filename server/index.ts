@@ -7,6 +7,7 @@ import {
   type DeparturesQuery,
 } from "./transit";
 import { fetchEpaObservations, type EpaEnvironment } from "./epa";
+import type { TransitMode } from "../shared/transit";
 
 export type Environment = TransitEnv &
   EpaEnvironment & { ALLOWED_ORIGINS?: string };
@@ -72,9 +73,9 @@ function integer(value: string | null, required = false): number | undefined {
   return number;
 }
 
-function mode(value: string | null): "train" | "tram" {
-  if (value !== "train" && value !== "tram")
-    throw new TransitServiceError("invalid_query", "Choose train or tram.");
+function mode(value: string | null): TransitMode {
+  if (value !== "train" && value !== "tram" && value !== "bus")
+    throw new TransitServiceError("invalid_query", "Choose train, tram or bus.");
   return value;
 }
 

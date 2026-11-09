@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LocateFixed, MapPin, TrainFront, TramFront } from "lucide-react";
+import { BusFront, LocateFixed, MapPin, TrainFront, TramFront } from "lucide-react";
 import { LocationError, requestCurrentLocation, type CurrentLocation } from "../lib/currentLocation";
 import { findNearbyStops, formatStopDistance } from "../lib/nearbyStops";
 import type { StopDirectory } from "../lib/stopDirectory";
-import type { TransitStop } from "../lib/transit";
+import type { TransitMode, TransitStop } from "../lib/transit";
 import { melbourneTime } from "../lib/resource";
 import type { TransitDestination } from "../lib/transitDestinations";
 import TransitDestinationSearch from "./TransitDestinationSearch";
@@ -30,7 +30,7 @@ export default function NearbyStops({
   const [searchRevision, setSearchRevision] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState<"all" | "train" | "tram">("all");
+  const [mode, setMode] = useState<"all" | TransitMode>("all");
   const [radius, setRadius] = useState(2000);
   const request = useRef<AbortController | null>(null);
   const requestId = useRef(0);
@@ -126,25 +126,25 @@ export default function NearbyStops({
     {center && <>
       <div className="nearby-transit-filters">
         <div className="segmented" role="group" aria-label="Nearby transport mode">
-          {([['all', 'All'], ['train', 'Trains'], ['tram', 'Trams']] as const).map(([value, label]) => <button key={value} aria-pressed={mode === value} onClick={() => setMode(value)}>{label}</button>)}
+          {([['all', 'All'], ['train', 'Trains'], ['tram', 'Trams'], ['bus', 'Buses']] as const).map(([value, label]) => <button key={value} aria-pressed={mode === value} onClick={() => setMode(value)}>{label}</button>)}
         </div>
         <label className="nearby-radius"><span>Nearby search radius</span><select value={radius} onChange={(event) => setRadius(Number(event.target.value))}><option value={1000}>1 km</option><option value={2000}>2 km</option><option value={5000}>5 km</option></select></label>
       </div>
       {!directory && directoryLoading && <p className="commute-help" role="status">Loading the official stop directory…</p>}
       {!directory && directoryError && <p className="commute-help" role="status">The stop directory is unavailable. Your search location is ready. <button className="inline-button" onClick={onRetryDirectory}>Retry nearby stop directory</button></p>}
       {directory && <>
-        <p className="nearby-distance-note">Up to 12 results within {radius / 1000} km{destination ? ` of ${destination.label}` : ""}, by straight-line distance to mapped stops, not a walking route or station entrance. Train platforms are grouped; tram boarding points stay separate.{location && " This location does not follow you as you move."}</p>
+        <p className="nearby-distance-note">Up to 12 results within {radius / 1000} km{destination ? ` of ${destination.label}` : ""}, by straight-line distance to mapped stops, not a walking route or station entrance. Train platforms are grouped; tram and bus boarding points stay separate.{location && " This location does not follow you as you move."}</p>
         <DeferredTransitStopMap center={center} nearby={nearby} radiusMetres={radius} selectedStop={selectedStop}
           onSelect={(stop) => onSelect(stop, { focusBoard: false })} onViewDepartures={(stop) => onSelect(stop)} />
         <div className="nearby-stop-results" role="region" aria-label="Nearby stops">
           {nearby.length ? <ol>{nearby.map(({ stop, label, distanceMetres, platformCount }, index) => <li key={`${stop.idScheme}:${stop.mode}:${stop.id}`}>
             <button aria-pressed={selectedStop?.id === stop.id && selectedStop.mode === stop.mode && selectedStop.idScheme === stop.idScheme} onClick={() => onSelect(stop)}>
               <span className="nearby-stop-number" aria-hidden="true">{index + 1}</span>
-              {stop.mode === "train" ? <TrainFront size={18} aria-hidden /> : <TramFront size={18} aria-hidden />}
-              <span className="nearby-stop-copy"><strong>{label}</strong><small>{stop.mode === "train" ? `Metro train${platformCount > 1 ? ` · ${platformCount} mapped platforms` : ""}` : `Tram · Boarding point ${stop.id}`}</small></span>
+              {stop.mode === "train" ? <TrainFront size={18} aria-hidden /> : stop.mode === "tram" ? <TramFront size={18} aria-hidden /> : <BusFront size={18} aria-hidden />}
+              <span className="nearby-stop-copy"><strong>{label}</strong><small>{stop.mode === "train" ? `Metro train${platformCount > 1 ? ` · ${platformCount} mapped platforms` : ""}` : `${stop.mode === "bus" ? "Bus" : "Tram"} · Boarding point ${stop.id}`}</small></span>
               <span className="nearby-stop-distance">≈ {formatStopDistance(distanceMetres)}</span>
             </button>
-          </li>)}</ol> : <p>No {mode === "train" ? "train stations" : mode === "tram" ? "tram stops" : "train or tram stops"} found within {radius / 1000} km in the Melbourne directory. Try a wider radius, another mode or search by name.</p>}
+          </li>)}</ol> : <p>No {mode === "train" ? "train stations" : mode === "tram" ? "tram stops" : mode === "bus" ? "bus stops" : "train, tram or bus stops"} found within {radius / 1000} km in the Melbourne directory. Try a wider radius, another mode or search by name.</p>}
         </div>
         {selectedStop && !nearby.some(({ stop }) => stop.id === selectedStop.id && stop.mode === selectedStop.mode && stop.idScheme === selectedStop.idScheme) && <p className="nearby-distance-note">The board still shows {selectedStop.name}. Select a nearby result to change it.</p>}
         <p className="nearby-distance-note">Select a stop for departures and service updates. Check its route, direction and platform before boarding. Rail-replacement bus stops are available through name search.</p>

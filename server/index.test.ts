@@ -116,7 +116,7 @@ describe("public API boundary", () => {
     for (const path of [
       "/api/transit/departures?mode=train",
       `${endpoint}&directionId=-1`,
-      "/api/transit/departures?stopId=1&mode=bus",
+      "/api/transit/departures?stopId=1&mode=ferry",
       `${endpoint}&routeId=9999999999`,
       "/api/transit/stops?q=12&mode=train",
       "/api/air/observations?latitude=-37.8",

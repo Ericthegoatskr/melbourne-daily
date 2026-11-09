@@ -72,7 +72,7 @@ async function openTransport() {
 const departures = () => within(screen.getByRole("region", { name: "Departures" }));
 const updates = () => within(screen.getByRole("region", { name: "Service updates" }));
 async function choose(query: string, name: RegExp) {
-  fireEvent.change(screen.getByRole("searchbox", { name: "Find a station or tram stop" }), { target: { value: query } });
+  fireEvent.change(screen.getByRole("searchbox", { name: "Find a station, tram or bus stop" }), { target: { value: query } });
   await act(async () => {
     fireEvent.click(within(screen.getByRole("region", { name: "Matching stops" })).getByRole("button", { name }));
   });
@@ -102,7 +102,7 @@ describe("dedicated transport dashboard", () => {
     view.unmount();
     await openTransport();
     expect(screen.getByRole("button", { name: /Flinders Street Station.*All directions/ }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByRole("searchbox", { name: "Find a station or tram stop" })).toBeTruthy();
+    expect(screen.getByRole("searchbox", { name: "Find a station, tram or bus stop" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Trams" }));
     await choose("Bourke", /Bourke Street Mall/);
     fireEvent.click(screen.getByRole("button", { name: "Save this stop and direction" }));
@@ -156,6 +156,6 @@ describe("dedicated transport dashboard", () => {
     expect(departures().queryByText("Frankston", { exact: true })).toBeNull();
     expect(updates().queryByText("Weekend track works", { exact: true })).toBeNull();
     expect(updates().queryByText(/No service updates|running normally/i)).toBeNull();
-    expect(screen.getByRole("searchbox", { name: "Find a station or tram stop" })).toBeTruthy();
+    expect(screen.getByRole("searchbox", { name: "Find a station, tram or bus stop" })).toBeTruthy();
   });
 });
