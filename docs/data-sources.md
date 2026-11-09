@@ -1,6 +1,6 @@
 # Data sources and coverage
 
-Reviewed on 7 November 2026, in the Australia/Melbourne time zone. Melbourne Daily serves its frontend on GitHub Pages. Public feeds are requested directly from the browser; the bundled GTFS directory supports stop search without credentials. EPA categories and hourly PM2.5/PM10 readings are live through a public Pages snapshot collected from the owner-private backend. `EPA_API_KEY` remains a Sites Secret, and the authorised Actions service-access credential remains a separate Secret. PTV credentials are pending. No API credentials are bundled. Application polling intervals below are product settings, not provider guarantees.
+Reviewed on 9 November 2026, in the Australia/Melbourne time zone. Melbourne Daily serves its frontend on GitHub Pages. Public feeds are requested directly from the browser; the bundled GTFS directory supports stop search without credentials. EPA categories and hourly PM2.5/PM10 readings are live through a public Pages snapshot collected from the owner-private backend. `EPA_API_KEY` remains a Sites Secret, and the authorised Actions service-access credential remains a separate Secret. PTV credentials are backend Secrets, and the separate public transport service supplies validated departures and service updates. No API credentials are bundled. Application polling intervals below are product settings, not provider guarantees.
 
 ## Current release and connection status
 
@@ -66,9 +66,9 @@ The backend calls the official `/environmentMonitoring/v1/sites/parameters?envir
 
 The frontend expires fields independently, then chooses the nearest station with at least one usable field within 100 km of the selected suburb. The displayed category and pollutants belong to that station; missing pollutants are not silently borrowed from another station. Station distance describes the monitoring location, not the precision of an inferred reading at the user's suburb. Source timestamps represent the end of each one-hour observation interval, separately from backend retrieval time.
 
-The EPA provider key stays in Sites. The collector uses the authorised `EPA_BACKEND_TOKEN` Actions Secret to reach that private backend and publish only validated station fields. `VITE_EPA_DATA_URL` points the browser to the public JSON snapshot; it chooses a station locally without sending coordinates or credentials to Sites. `VITE_DATA_API_URL` remains unset while PTV is unavailable. Do not put API keys in `VITE_*` variables or public JavaScript. See [backend configuration and verification](backend.md).
+The EPA provider key stays in Sites. The collector uses the authorised `EPA_BACKEND_TOKEN` Actions Secret to reach that private backend and publish only validated station fields. `VITE_EPA_DATA_URL` points the browser to the public JSON snapshot; it chooses a station locally without sending coordinates or credentials to Sites. `VITE_DATA_API_URL` remains unset; PTV uses its independent `VITE_TRANSIT_API_URL`. Do not put API keys in `VITE_*` variables or public JavaScript. See [backend configuration and verification](backend.md).
 
-## Transport: public directory and credential-gated PTV board
+## Transport: public directory and live PTV board
 
 Verified official destinations:
 
@@ -85,7 +85,7 @@ The [weekly refresh workflow](../.github/workflows/refresh-transit-stops.yml) us
 
 The implemented live board uses [PTV Timetable API v3](https://www.vic.gov.au/public-transport-timetable-api), whose [official Swagger contract](https://timetableapi.ptv.vic.gov.au/swagger/docs/v3) documents signed requests and `gtfs=true` for GTFS stop IDs. Saved selections preserve their identifier scheme; PTV route/direction IDs are not assumed to equal GTFS route/direction IDs. The UI displays up to five upcoming services, distinct scheduled/estimated/cancelled states, and relevant active service alerts. Route/direction-specific favourites become selectable when that authenticated response is available.
 
-PTV `checkedAt` records when the backend completed its lookup; it is not an upstream observation timestamp. The UI labels it “Checked”, polls every 30 seconds and hides the board and associated alerts after 120 seconds without a successful refresh. A missing live prediction is displayed as scheduled, not “on time”. Public upstream documentation and fixtures have been checked, but actual authenticated train/tram responses and production GTFS-to-PTV identity matching still need this project's credentials.
+PTV `checkedAt` records when the backend completed its lookup; it is not an upstream observation timestamp. The UI labels it “Checked”, polls every 30 seconds and hides the board and associated alerts after 120 seconds without a successful refresh. A missing live prediction is displayed as scheduled, not “on time”. Authenticated and anonymous train/tram responses, GTFS-to-PTV mapping, direction filtering and the production homepage/transport page were verified on 9 November 2026. GTFS boarding points can resolve to a station-wide or both-direction PTV board; the interface states this scope. Route-specific GTFS queries use the general stop endpoint and apply PTV route filtering before the result limit. See the [activation record](backend.md).
 
 [GTFS Realtime](https://opendata.transport.vic.gov.au/dataset/gtfs-realtime) is an alternative integration, not the live backend implemented here. It requires a separate key. Its catalogue specifies a `KeyID` header and 24 calls per 60 seconds for each of Metro Train, Tram and Bus. Tram data refreshes every 60 seconds; train and bus data are described as near realtime. An unauthenticated Trip Updates request returned 401 during development. Some downloadable OpenAPI documents describe a different authentication header; these credentials must not be assumed interchangeable with PTV Timetable API credentials.
 
@@ -97,5 +97,5 @@ If a future version changes to GTFS Realtime, it must join the correct static tr
 2. Load, refresh and report failures independently for each feed.
 3. Never substitute demo numbers for unavailable live data. Keep official destinations accessible.
 4. Recalculate freshness as time passes and when a background tab becomes visible. Reject older responses that would replace a newer accepted result.
-5. Hide expired values: weather after 90 minutes, UV and parking after 15 minutes, modeled air and individual EPA observations after three hours, and the PTV board after two minutes. These are product limits, not provider guarantees. PTV activation remains pending.
+5. Hide expired values: weather after 90 minutes, UV and parking after 15 minutes, modeled air and individual EPA observations after three hours, and the PTV board after two minutes. These are product limits, not provider guarantees.
 6. GitHub Actions builds/deploys the application and maintains the weekly stop directory. The EPA snapshot job is configured for a best-effort 15-minute schedule, preserving original observation times; it does not provide minute-by-minute transit data.

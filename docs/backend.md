@@ -1,12 +1,12 @@
 # Authenticated data backend
 
-The public homepage displays EPA categories and hourly PM2.5/PM10 readings from a validated GitHub Pages snapshot. The combined Sites backend remains owner-private, with EPA and PTV credentials configured as Secrets in environment revision 4. Authenticated train and tram requests succeeded on both the combined backend and the dedicated transit host on 9 November 2026. The owner has authorised making the dedicated transit endpoint public and completing homepage activation. Deployment and public verification remain pending: `VITE_DATA_API_URL` and `VITE_TRANSIT_API_URL` stay unset, and public departures show an unavailable state with official links. Stop search and stop favourites continue to work from the public GTFS directory.
+The public homepage displays live PTV departures and service updates alongside EPA categories and hourly PM2.5/PM10 readings from a validated GitHub Pages snapshot. The dedicated transit API passed anonymous checks at 18:05 AEDT on 9 November 2026; the Pages release and production-browser checks passed at 18:07–18:09 AEDT. `VITE_TRANSIT_API_URL` is configured for the public transit host, while `VITE_DATA_API_URL` remains unset. The combined Sites backend remains owner-private, with EPA and PTV credentials configured as Secrets in environment revision 4. Stop search and stop favourites continue to use the public GTFS directory.
 
-The Sites backend remains owner-private and returns HTTP 401 to anonymous requests. The authorised Actions collector can read it using a service-access Secret; anonymous visitors read only the published JSON snapshot from GitHub Pages.
+The combined Sites backend remains owner-private and returns HTTP 401 to anonymous EPA requests. The authorised Actions collector can read it using a service-access Secret; anonymous visitors read EPA only through the published JSON snapshot from GitHub Pages. The separate public transit API exposes departures only.
 
 ## Canonical source and build
 
-`server/index.ts`, `server/transit.ts`, `server/epa.ts` and `shared/` in the `melbourne-daily` repository are the source of truth. The sibling `melbourne-daily-api` project contains generated Sites worker hosting scaffolding. Do not maintain adapter changes only in that generated project.
+`server/index.ts`, `server/transit-public.ts`, `server/transit.ts`, `server/epa.ts` and `shared/` in the `melbourne-daily` repository are the source of truth. The sibling `melbourne-daily-api` and `melbourne-transit-api` projects contain generated Sites worker hosting scaffolding. Do not maintain adapter changes only in those generated projects.
 
 ```sh
 npm ci
@@ -37,19 +37,19 @@ Configure these values in the backend host's runtime secret/environment settings
 | `EPA_API_BASE_URL` | Defaults to the official `https://gateway.api.epa.vic.gov.au/environmentMonitoring/v1` service; the adapter restricts requests to the official HTTPS host and rejects redirects. |
 | `ALLOWED_ORIGINS` | Comma-separated allowed browser origins; defaults to `https://ericthegoatskr.github.io`. Origins contain no `/melbourne-daily/` path. |
 
-The frontend accepts public data URLs only. `VITE_EPA_DATA_URL` enables EPA independently by pointing to the complete public JSON snapshot URL. If absent, EPA falls back to the `/api/air/observations` route under `VITE_DATA_API_URL`. Transport prefers `VITE_TRANSIT_API_URL`, with `VITE_DATA_API_URL` retained as a compatibility fallback. An invalid explicit transport URL fails closed. Keep both transport/shared variables unset until public transport access is authorised and verified, so enabling EPA does not start unsuccessful transport polling. None of these variables contains a provider key.
+The frontend accepts public data URLs only. `VITE_EPA_DATA_URL` enables EPA independently by pointing to the complete public JSON snapshot URL. If absent, EPA falls back to the `/api/air/observations` route under `VITE_DATA_API_URL`. Transport prefers `VITE_TRANSIT_API_URL`, with `VITE_DATA_API_URL` retained as a compatibility fallback. An invalid explicit transport URL fails closed. Public transit access and frontend activation are authorised and verified through `VITE_TRANSIT_API_URL`; the shared URL remains unset. None of these variables contains a provider key.
 
-Never put provider credentials in any `VITE_*` variable, Pages artifact or committed `.env` file. Vite embeds its environment at build time, so enabling or changing a URL requires a new frontend build and Pages deployment. The Pages workflow maps the matching GitHub Actions repository variables into the frontend build only. `VITE_EPA_DATA_URL` is set to `https://ericthegoatskr.github.io/melbourne-daily/data/epa-observations.json`; `VITE_DATA_API_URL` and `VITE_TRANSIT_API_URL` remain unset.
+Never put provider credentials in any `VITE_*` variable, Pages artifact or committed `.env` file. Vite embeds its environment at build time, so enabling or changing a URL requires a new frontend build and Pages deployment. The Pages workflow maps the matching GitHub Actions repository variables into the frontend build only. `VITE_EPA_DATA_URL` is set to `https://ericthegoatskr.github.io/melbourne-daily/data/epa-observations.json`; `VITE_TRANSIT_API_URL` is set to `https://melbourne-transit-api-eric.boundlessforge.chatgpt.site` and included in the verified Pages release. `VITE_DATA_API_URL` remains unset.
 
-### Prepared transport-only public endpoint
+### Transport-only public endpoint
 
 `npm run build:transit-api` bundles `server/transit-public.ts` into `dist-api/transit.js`. Its sole route is `/api/transit/departures`, with GET/OPTIONS only; all health, EPA, search and arbitrary proxy paths return 404. Stop lookup remains in the browser's public GTFS directory. The adapter forwards only PTV configuration to the gateway, even if unrelated credentials are accidentally added to its host. It needs no EPA key or private Sites service-access token.
 
-The existing combined backend remains owner-private. The separate transport-only host at `https://melbourne-transit-api-eric.boundlessforge.chatgpt.site`, project `appgprj_6af16e43fb98819195767987520ce362`, has passed private deployment checks. Its runtime contains only `PTV_DEV_ID` and `PTV_API_KEY`, marked as Secrets. The owner has authorised its public audience and homepage activation. After deploying and verifying the route-filter correction described below, verify anonymous access and CORS for the Pages origin, then set `VITE_TRANSIT_API_URL` and deploy Pages. Public activation has not yet been verified. Never point the browser at the private EPA service or include its access token. The browser explicitly omits credentials and HTTP caching on transport requests.
+The existing combined backend remains owner-private. The separate transport-only host at `https://melbourne-transit-api-eric.boundlessforge.chatgpt.site`, project `appgprj_6af16e43fb98819195767987520ce362`, is public under audience revision 2. Its runtime contains only `PTV_DEV_ID` and `PTV_API_KEY`, marked as Secrets. The corrected adapter has passed anonymous requests, CORS checks for the Pages origin and rendered-browser verification through the deployed frontend. Never point the browser at the private EPA service or include its access token. The browser explicitly omits credentials and HTTP caching on transport requests.
 
 The gateway retains a 25-second per-query cache and the UI polls every 30 seconds, expiring departures and alerts after two minutes. These are application intervals, not a promise of the provider's update frequency. GitHub Actions' 15-minute EPA snapshot path is unsuitable for these predictions. The [official data-quality statement](https://www.vic.gov.au/public-transport-timetable-api-data-quality-statement) describes realtime coverage as dependent on operator data.
 
-The [official v3 schema](https://timetableapi.ptv.vic.gov.au/swagger/docs/v3) confirms GTFS stop lookup with `gtfs=true`, expanded route/direction data and distinct scheduled/estimated timestamps. Cancellation support is documented for metropolitan trains only. Signed upstream requests reject redirects so authentication-bearing URLs are never forwarded to another host. Empty-departure boards still validate the returned PTV stop identity and mode before associating service updates. Private production access is now verified; public activation and production-browser acceptance remain pending.
+The [official v3 schema](https://timetableapi.ptv.vic.gov.au/swagger/docs/v3) confirms GTFS stop lookup with `gtfs=true`, expanded route/direction data and distinct scheduled/estimated timestamps. Cancellation support is documented for metropolitan trains only. Signed upstream requests reject redirects so authentication-bearing URLs are never forwarded to another host. Empty-departure boards still validate the returned PTV stop identity and mode before associating service updates. Public API access, Pages deployment and production-browser acceptance are verified.
 
 Preparation checks on 7 November 2026 passed 250 tests, TypeScript and all four builds (frontend, private API, transport-only API and EPA collector). Route-only service updates now respect the selected PTV direction when supplied, while explicit departure/stop associations remain authoritative. Browser artifacts contained no provider credential names, signing parameters, private service-authentication header or private-backend origin.
 
@@ -66,7 +66,7 @@ The live responses established that GTFS boarding points can resolve to a broade
 | Train `11212` and `11213` | `1071` | Entire Flinders Street station, with platforms 1–10 represented. |
 | Tram `19497` and `19687` | `2206` | Both directions represented. |
 
-A selected GTFS boarding point therefore does not by itself guarantee a platform-specific or single-direction departure board. Preserve the returned PTV identity and route/direction filters, and verify that the public interface clearly represents this scope before accepting the feature. Live cancellation behaviour and comparison with the official source remain separate acceptance checks.
+A selected GTFS boarding point therefore does not by itself guarantee a platform-specific or single-direction departure board. The public interface preserves the returned PTV identity and route/direction filters and identifies Flinders Street as an all-platforms station board. Cancellation handling is covered by tests; no cancelled departure was captured during live verification. Capturing one or comparing a simultaneous official-website board remains an optional diagnostic, not a release gate.
 
 | Deployment record | Value |
 | --- | --- |
@@ -86,9 +86,41 @@ The dedicated transit host's initial private deployment succeeded at 17:56 AEDT.
 | Successful deployment | `appgdep_6af16ea441a48191ac5927ea18c48e0b` |
 | Environment revision | `1` |
 
-Further requests to the official provider exposed a route-ID compatibility issue: the route-specific departures endpoint returned an empty board when combining a GTFS stop identifier with a PTV route identifier, while the native PTV stop/route endpoint worked. The shared adapter now keeps GTFS requests on the general stop endpoint, retains `direction_id` upstream and filters the returned departures by PTV route during parsing, before applying the result limit. Native PTV stop requests retain the working route-specific endpoint. Both backend bundles must be rebuilt and redeployed from the updated canonical source, followed by route/direction verification; the deployment records above predate this correction.
+Further requests to the official provider exposed a route-ID compatibility issue: the route-specific departures endpoint returned an empty board when combining a GTFS stop identifier with a PTV route identifier, while the native PTV stop/route endpoint worked. The shared adapter now keeps GTFS requests on the general stop endpoint, retains `direction_id` upstream and filters the returned departures by PTV route during parsing, before applying the result limit. Native PTV stop requests retain the working route-specific endpoint. Both corrected backend bundles have since been deployed successfully; the initial deployment records above predate this correction.
 
-The owner has now explicitly authorised making the dedicated transit endpoint public and completing homepage activation. Public deployment and browser verification remain pending. The original EPA service remains owner-private. No provider credentials or service-access tokens are recorded here.
+The owner explicitly authorised making the dedicated transit endpoint public and completing homepage activation. The successful public API, Pages and browser verification records follow. The original EPA service remains owner-private. No provider credentials or service-access tokens are recorded here.
+
+### Public PTV API verification: 9 November 2026
+
+At 18:05 AEDT, the dedicated transit host passed anonymous requests without an authentication header. Public audience revision 2 exposes only the transit endpoint. The current API source is GitHub commit `534c1ea`; 314 tests across 25 suites, TypeScript checking and all four builds passed.
+
+| Corrected deployment | Combined private backend | Dedicated public transit backend |
+| --- | --- | --- |
+| Sites source commit | `e2e36e33c97aad9b77848fbd05c342bf27ec46ae` | `cb4213307a8316c342a34aee1851f5e9c9cdcf3c` |
+| Saved version | `appgprj_6aee16edac8c8191ad4817368db6cf2b~appgver_fa7c256372388191a8484e8b7913f68d` | `appgprj_6af16e43fb98819195767987520ce362~appgver_69ca22ee6ee08191b83090b6b0542db4` |
+| Successful deployment | `appgdep_6af1707c15c881918f446db05434f92c` | `appgdep_6af170585cfc8191a7af55590a1583d1` |
+| Environment revision | `4` | `1` |
+
+The following public responses returned HTTP 200 and passed the actual frontend response parser. Counts describe these verification responses, not the number of rows rendered by the UI.
+
+| GTFS stop and mode | PTV route / direction | Departures | Associated alerts |
+| --- | --- | --- | --- |
+| Train `11212` | Unfiltered | 100 | 22 |
+| Train `11212` | Route `5`, direction `9` | 50 | 5 |
+| Tram `19497` | Route `721`, direction `0` | 50 | 0 |
+| Tram `19497` | Route `721`, direction `1` | 50 | 0 |
+
+CORS allowed the exact Pages origin, `https://ericthegoatskr.github.io`; a different origin received HTTP 403. `OPTIONS` returned 204 and `POST` returned 405. The public transit host returned 404 for health and EPA paths. An anonymous request to the original EPA backend still returned 401. These checks verify the public API and frontend parsing; the subsequent Pages and browser verification is recorded below.
+
+### Pages and browser activation: 9 November 2026
+
+[Actions run 42577153638](https://github.com/Ericthegoatskr/melbourne-daily/actions/runs/42577153638), triggered by `workflow_dispatch`, successfully built and deployed commit `534c1ea7cd04c975741a332955e71fc8d669d40f` with the configured `VITE_TRANSIT_API_URL`. Public-browser checks passed between 18:07 and 18:09 AEDT on both the transport page and homepage.
+
+The transport page displayed the real Flinders Street station board with its all-platforms scope. Selecting Mernda showed only Mernda departures, with live and scheduled labels. Expanded service updates showed their start date and operator link. At Bourke Street Mall, GTFS tram stop `19497`, selecting route 1 toward East Coburg showed only route 1 departures, including live and scheduled times, and the explicit message that no service updates were returned. The homepage also displayed real Flinders Street departures and alerts.
+
+The 30-second refresh was observed through `checkedAt` advancing from 18:07:35 to 18:08:06 AEDT. The client parser also passed an exact two-minute expiry check using recorded live responses. The 390 CSS-pixel mobile transport layout and 1,440 CSS-pixel desktop homepage had no horizontal overflow, and captured console error logs were empty. Screenshot evidence was saved locally outside Git.
+
+Cancellation rendering, expiry and failure handling are covered by tests; no actual cancelled service was captured in the live check. Observing a live cancellation or comparing a simultaneous official-website departure board is optional follow-up diagnostic work. A 139-file source and Pages-artifact scan found no PTV signing key or either Sites service-access token. Provider credentials remain in backend Secrets, and the original EPA endpoint remains private with anonymous HTTP 401.
 
 ### Public EPA snapshots through GitHub Pages
 
@@ -134,21 +166,24 @@ An anonymous request to `/api/air/observations` returned HTTP 401, confirming th
 
 This earlier check verified the private EPA backend; the public snapshot activation and subsequent private PTV verification are recorded above.
 
-## Remaining production gates
+## Completed production checks
 
 - [x] Obtain owner authorisation and configure the Sites service-access credential as the `EPA_BACKEND_TOKEN` Actions Secret in `Ericthegoatskr/melbourne-daily`.
 - [x] Configure `EPA_API_KEY` as a backend Secret and confirm the `X-API-Key` authentication header.
 - [x] Configure authorised PTV runtime credentials on the existing owner-private backend.
 - [x] Fetch actual train and tram responses, including GTFS-to-PTV stop mapping, estimated/scheduled departures and train-associated disruptions.
 - [x] Verify the dedicated transport-only host privately with its own PTV Secrets; train/tram return HTTP 200 and health/EPA return HTTP 404.
-- [ ] Redeploy both backends with the GTFS route-filter correction and verify route/direction responses.
-- [ ] Compare scheduled/live/cancelled services with the official source and verify how the production interface represents broader PTV stop boards.
+- [x] Redeploy both backends with the GTFS route-filter correction and verify route/direction responses.
+- [x] Verify the production interface represents broader PTV stop boards and distinguishes actual live estimates from scheduled times.
 - [x] Fetch an actual EPA response and verify coordinates, interval boundaries, units, quality fields, missing sensors and provider categories against AirWatch.
 - [x] Set `VITE_EPA_DATA_URL` to the public snapshot URL, keep `VITE_DATA_API_URL` unset and publish through the Pages workflow.
 - [x] Verify the deployed JSON contains only approved station fields, no credentials and fresh observation timestamps; check normal, missing and measured-zero values in the public browser.
 - [x] Record the successful Actions run and deployed frontend revision; preserve the owner-private backend.
 - [x] Obtain owner permission for the dedicated transport host's public audience and homepage activation.
-- [ ] Verify anonymous access and CORS for the exact Pages origin before configuring `VITE_TRANSIT_API_URL`.
-- [ ] Deploy Pages with the authorised transport URL and verify live data, direction selection, freshness and failure states in the production browser.
+- [x] Verify anonymous access and CORS for the exact Pages origin, method restrictions, isolated routes and frontend parsing.
+- [x] Deploy Pages with the authorised transport URL and verify live data, route/direction selection, service updates and refresh in the production browser on mobile and desktop.
+- [x] Verify exact two-minute expiry with recorded live responses; cover cancellation, expiry and failure handling in tests.
+
+Optional diagnostics: compare a simultaneous official-website departure board and capture a live cancellation when one is available. These observations were not part of the completed live check and are not required release gates.
 
 The owner completed EPA registration and secret entry directly in the provider portal and Sites settings. No key values belong in this repository, frontend assets or verification records.
