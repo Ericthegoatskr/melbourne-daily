@@ -1,0 +1,98 @@
+[
+  {
+    "id": "vicmap-foi:11692",
+    "label": "Box Hill Central, Box Hill",
+    "latitude": -37.8195311668125,
+    "longitude": 145.1214900021457
+  },
+  {
+    "id": "vicmap-foi:990689",
+    "label": "Monash University \u2013 Clayton campus, Clayton",
+    "latitude": -37.91016912672833,
+    "longitude": 145.13377039608446
+  },
+  {
+    "id": "vicmap-foi:70101",
+    "label": "Chadstone Shopping Centre, Malvern East",
+    "latitude": -37.88645807296345,
+    "longitude": 145.082997183238
+  },
+  {
+    "id": "vicmap-foi:70968",
+    "label": "Highpoint Shopping Centre, Maribyrnong",
+    "latitude": -37.77333315105982,
+    "longitude": 144.8888337286087
+  },
+  {
+    "id": "vicmap-foi:70099",
+    "label": "The Glen Shopping Centre, Glen Waverley",
+    "latitude": -37.87623974080571,
+    "longitude": 145.16521796986555
+  },
+  {
+    "id": "vicmap-foi:998247",
+    "label": "Westfield Doncaster, Doncaster",
+    "latitude": -37.785057094711206,
+    "longitude": 145.1262545631064
+  },
+  {
+    "id": "vicmap-foi:11286",
+    "label": "Eastland Shopping Centre, Ringwood",
+    "latitude": -37.81297160169208,
+    "longitude": 145.2290707547584
+  },
+  {
+    "id": "vicmap-foi:70322",
+    "label": "Dandenong Market, Dandenong",
+    "latitude": -37.9839155411889,
+    "longitude": 145.21557928000138
+  },
+  {
+    "id": "vicmap-foi:702568",
+    "label": "Werribee Library, Werribee",
+    "latitude": -37.903597271834634,
+    "longitude": 144.65766489180734
+  },
+  {
+    "id": "vicmap-foi:702420",
+    "label": "Frankston Library, Frankston",
+    "latitude": -38.14586099873815,
+    "longitude": 145.12369891541186
+  },
+  {
+    "id": "vicmap-foi:702547",
+    "label": "Sunshine Library, Sunshine",
+    "latitude": -37.78318643725013,
+    "longitude": 144.83214991111154
+  },
+  {
+    "id": "vicmap-foi:702467",
+    "label": "Melton Library, Melton",
+    "latitude": -37.684779806714836,
+    "longitude": 144.58236202130135
+  },
+  {
+    "id": "vicmap-foi:71968",
+    "label": "Preston Market, Preston",
+    "latitude": -37.73901171296805,
+    "longitude": 145.00191358830168
+  },
+  {
+    "id": "vicmap-foi:1342297",
+    "label": "Westfield Fountain Gate, Narre Warren",
+    "latitude": -38.01808861187554,
+    "longitude": 145.30425906131953
+  },
+  {
+    "id": "vicmap-foi:702418",
+    "label": "Footscray Library, Footscray",
+    "latitude": -37.800159617322265,
+    "longitude": 144.89578267703172
+  },
+  {
+    "id": "vicmap-foi:1344273",
+    "label": "Broadmeadows Central, Broadmeadows",
+    "latitude": -37.67988963286203,
+    "longitude": 144.91955426169443
+  }
+]

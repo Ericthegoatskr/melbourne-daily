@@ -11,10 +11,11 @@ Reviewed on 9 November 2026, in the Australia/Melbourne time zone. Melbourne Dai
 | Parking          | Reporting sensor counts, available bays and street summaries       | Sensor-equipped City of Melbourne bays                           | Approximately two minutes in the original parking project's measurements / every two minutes |
 | Modeled air      | PM2.5 and PM10 estimates                                           | CAMS Global grid, approximately 45 km                            | Model updates every 12 hours; native three-hourly output / every 30 minutes                  |
 | Stop search and favourites | Official static train/tram boarding points; local saved selections | Greater Melbourne bounding box described below | Provider normally weekly/as needed; directory refresh scheduled weekly |
+| Destination search | Vicmap addresses and landmarks, with City of Melbourne central-city data and bundled landmark choices | Melbourne's 31 metropolitan council areas, filtered using simplified boundaries | Provider reference-data updates vary; lookup only after explicit search submission, no polling |
 | EPA observations | Station categories and measurements from a public Pages snapshot | Nearest eligible EPA station within 100 km of the selected suburb | Provider hourly; best-effort snapshot schedule and client polling every 15 minutes, backend cache five minutes |
-| PTV departures | Board, directions, cancellations and alerts implemented; live feed awaits credentials and public backend | Selected Metro train or tram stop | Live estimates when supplied; intended client polling 30 seconds and backend cache 25 seconds |
+| PTV departures | Live board, directions, reported train cancellations and associated service updates | Selected Metro train or tram stop | Live estimates when supplied; client polling 30 seconds and backend cache 25 seconds |
 
-The air estimates are not EPA observations. EPA reads a verified public Pages snapshot while its backend stays private. PTV retains stop search/favourites and shows an unavailable departures state with official alternatives until its credentials are configured.
+The air estimates are not EPA observations. EPA reads a verified public Pages snapshot while its backend stays private. PTV uses its separate public read service with credentials kept in the backend; stop search and favourites remain usable if the live service is unavailable.
 
 ## Weather and UV forecasts: Open-Meteo
 
@@ -45,6 +46,18 @@ The feed can retain historical sensors. Counting every `Unoccupied` record would
 The bundled zone crosswalk supplies street names. Unmapped zones remain outside street recommendations. The summary covers sensor-equipped City of Melbourne bays, not all parking in Greater Melbourne. An available sensor reading does not establish parking eligibility, fees or time limits; users must check signs at the location.
 
 The City notes that network relay failures can delay updates. Credit City of Melbourne under CC BY 4.0. The original project's approximately two-minute measurements are not a service-level guarantee.
+
+## Destination addresses and landmarks: Vicmap and City of Melbourne
+
+The destination finder uses public [Vicmap as a Service](https://www.land.vic.gov.au/maps-and-spatial/data-services/vicmap-as-a-service) data: the Mapshare Vicmap Address geocoder for submitted street addresses and Vicmap Features of Interest, hosted on Esri services, for landmark names. It does not scan the statewide address feature layer. The existing City of Melbourne [street addresses](https://data.melbourne.vic.gov.au/explore/dataset/street-addresses/) and [landmarks](https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/) remain secondary central-city sources. Source credit is shown in the search UI under CC BY 4.0.
+
+Service references: [Vicmap Address geocoder](https://corp-geo.mapshare.vic.gov.au/arcgis/rest/services/Geocoder/VMAddressEZIAdd/GeocodeServer), [Vicmap Features of Interest](https://services-ap1.arcgis.com/P744lA0wf4LlBZ84/arcgis/rest/services/Vicmap_Features_of_Interest/FeatureServer/4) and [Vicmap Admin local-government boundaries](https://services-ap1.arcgis.com/P744lA0wf4LlBZ84/arcgis/rest/services/Vicmap_Admin/FeatureServer/9). Credit the State of Victoria (Department of Transport and Planning) for Vicmap data and City of Melbourne for its secondary datasets. The committed boundary snapshot records its source, retrieval date, licence and simplification settings in [its metadata](../src/data/melbourneMetroBoundary.json).
+
+Vicmap reference data is broader than the former City of Melbourne municipality search. This product filters returned points to Melbourne's 31 metropolitan council areas, using simplified boundaries. Matches at boundary edges are approximate; this filter is not an authoritative boundary determination. Suburb-qualified searches help distinguish similar names. Directory coverage is not exhaustive for every business or destination, and landmark points may represent a centroid rather than an entrance. Metro train/tram stop coverage is independent: an outer-suburb destination may have no stop within the selected radius.
+
+Lookup happens only after the user submits a query. Text is sent directly to Victorian Government Vicmap services, including Esri hosting, and City of Melbourne, with credentials omitted; it contains no device coordinates or PTV/EPA credential. These public services require no new application key. Bundled landmark choices work locally without a query. Pending requests can be cancelled, superseded or timed out; malformed/out-of-area results are rejected and partial failures remain visible. There is no background geocoding or destination polling. Provider reference-data update times vary and are not live transport timestamps.
+
+The optional nearby-stop map uses OpenStreetMap tiles only after the user opens it, disclosing that the tile provider receives the viewed map area. It has no geocoding key and is independent of PTV credentials. See the [destination and map guide](transit-directory.md#destination-search-and-linked-map) for interaction, validation and privacy checks.
 
 ## Modeled air: CAMS / Open-Meteo
 

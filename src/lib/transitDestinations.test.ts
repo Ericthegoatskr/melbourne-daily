@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LANDMARKS, searchTransitDestinations } from "./transitDestinations";
+import { LANDMARKS, loadMetroCoverage, searchTransitDestinations } from "./transitDestinations";
+import { searchVicmapDestinations } from "./vicmapDestinations";
+
+vi.mock("./vicmapDestinations", () => ({ searchVicmapDestinations: vi.fn() }));
 
 const address = { gisid: "37995", address_pnt: "120 Swanston Street  Melbourne", geo_point_2d: { lat: -37.814719495194, lon: 144.966364782516 } };
 const square = LANDMARKS.find((p) => p.id === "landmark:federation-square")!;
@@ -7,10 +10,54 @@ const landmark = { feature_name: square.label, co_ordinates: { lat: square.latit
 const response = (results: unknown[], total_count = results.length) => ({ ok: true, json: async () => ({ results, total_count }) });
 const fetcher = vi.fn();
 
-beforeEach(() => { vi.stubGlobal("fetch", fetcher); fetcher.mockReset(); });
+beforeEach(() => {
+  vi.stubGlobal("fetch", fetcher); fetcher.mockReset();
+  vi.mocked(searchVicmapDestinations).mockReset().mockResolvedValue({ destinations: [], partial: false });
+});
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-describe("City of Melbourne destination lookup", () => {
+describe("Greater Melbourne lookup with the existing City sources", () => {
+  it("stops waiting for a hung boundary download when the search deadline aborts", async () => {
+    const controller = new AbortController();
+    const removeListener = vi.spyOn(controller.signal, "removeEventListener");
+    let complete!: (value: { isMelbourneMetro: () => boolean }) => void;
+    const coverage = loadMetroCoverage(controller.signal, () => new Promise((resolve) => { complete = resolve; }));
+    controller.abort();
+    expect(await coverage).toBeNull();
+    complete({ isMelbourneMetro: () => true });
+    expect(await coverage).toBeNull();
+    expect(removeListener).toHaveBeenCalledWith("abort", expect.any(Function));
+  });
+  it("handles a failed boundary chunk and avoids starting a cancelled download", async () => {
+    const controller = new AbortController();
+    expect(await loadMetroCoverage(controller.signal, async () => { throw new Error("Unavailable chunk"); })).toBeNull();
+    controller.abort();
+    const loader = vi.fn();
+    expect(await loadMetroCoverage(controller.signal, loader)).toBeNull();
+    expect(loader).not.toHaveBeenCalled();
+  });
+  it("keeps outer-suburb results and rejects Victorian locations outside the metro councils", async () => {
+    fetcher.mockResolvedValue(response([]));
+    const boxHill = { id: "vicmap-address:box-hill", label: "8 ARNOLD STREET BOX HILL 3128", latitude: -37.8140950381234, longitude: 145.11868494081307 };
+    const geelong = { id: "vicmap-address:geelong", label: "Geelong", latitude: -38.1499, longitude: 144.3617 };
+    vi.mocked(searchVicmapDestinations).mockResolvedValue({ destinations: [boxHill, geelong], partial: false });
+    expect(await searchTransitDestinations("8 Arnold Street Box Hill")).toEqual({ destinations: [boxHill], partial: false });
+  });
+  it("deduplicates suburban landmarks by their official identifier and keeps offline choices", async () => {
+    fetcher.mockResolvedValue(response([]));
+    const boxHill = LANDMARKS.find((place) => place.id === "vicmap-foi:11692")!;
+    vi.mocked(searchVicmapDestinations).mockResolvedValue({ destinations: [{ ...boxHill, label: "BOX HILL CENTRAL" }], partial: false });
+    expect((await searchTransitDestinations("Box Hill Central")).destinations).toEqual([boxHill]);
+    fetcher.mockRejectedValue(new Error("Offline"));
+    vi.mocked(searchVicmapDestinations).mockResolvedValue({ destinations: [], partial: true });
+    expect(await searchTransitDestinations("Box Hill Central")).toEqual({ destinations: [boxHill], partial: true });
+  });
+  it("retains available suburban addresses when City sources fail", async () => {
+    fetcher.mockRejectedValue(new Error("City service unavailable"));
+    const place = { id: "vicmap-address:werribee", label: "45 PRINCES HIGHWAY WERRIBEE 3030", latitude: -37.897915663075665, longitude: 144.67081107963173 };
+    vi.mocked(searchVicmapDestinations).mockResolvedValue({ destinations: [place], partial: false });
+    expect(await searchTransitDestinations("45 Princes Highway Werribee")).toEqual({ destinations: [place], partial: true });
+  });
   it("combines validated address and landmark points and omits credentials", async () => {
     fetcher.mockResolvedValueOnce(response([address])).mockResolvedValueOnce(response([landmark]));
     const result = await searchTransitDestinations("Swanston");

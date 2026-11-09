@@ -108,6 +108,41 @@ function assertDirectionsTo(stop: TransitStop) {
 }
 
 describe("destination discovery in the shared commute flow", () => {
+  it.each(["compact", "dashboard"] as const)("uses a suburban address in %s for the map, train/tram boards, service updates and walking links", async (variant) => {
+    const boxHill = { id: "vicmap:box-hill-address", label: "8 Arnold Street, Box Hill VIC 3128", latitude: -37.8187, longitude: 145.122 };
+    const suburbanTrain: TransitStop = { ...station, id: 12001, name: "Box Hill Station · Platform 1", suburb: "Box Hill", latitude: -37.819, longitude: 145.1224 };
+    const suburbanTram: TransitStop = { ...tram, id: 19001, name: "Box Hill Central/Whitehorse Rd #58", suburb: "Box Hill", latitude: -37.817, longitude: 145.123 };
+    vi.mocked(fetchStopDirectory).mockResolvedValue({ ...directory, stops: [station, tram, suburbanTrain, suburbanTram] });
+    vi.mocked(searchTransitDestinations).mockResolvedValue({ destinations: [boxHill], partial: false });
+    await openPanel(variant);
+    fireEvent.change(screen.getByRole("textbox", { name: "Find a destination" }), { target: { value: "8 Arnold Street Box Hill" } });
+    expect(searchTransitDestinations).not.toHaveBeenCalled();
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Search destinations" })));
+    expect(fetchTransitBoard).toHaveBeenCalledTimes(1);
+    fireEvent.click(within(screen.getByRole("region", { name: "Matching destinations" })).getByRole("button", { name: boxHill.label }));
+    expect(within(screen.getByRole("region", { name: "Test stop map" })).getByText(boxHill.label)).toBeTruthy();
+    expect(requestCurrentLocation).not.toHaveBeenCalled();
+    const results = within(screen.getByRole("region", { name: "Nearby stops" })).getAllByRole("button");
+    expect(results).toHaveLength(2);
+    expect(results[0].textContent).toContain("Box Hill Station");
+    expect(results[1].textContent).toContain("Box Hill Central/Whitehorse Rd");
+    expect(fetchTransitBoard).toHaveBeenCalledTimes(1);
+    await act(async () => fireEvent.click(results[0]));
+    expect(vi.mocked(fetchTransitBoard).mock.calls.at(-1)?.[0]).toEqual({ stop: suburbanTrain });
+    expect(screen.getByText("Train service update")).toBeTruthy();
+    assertDirectionsTo(suburbanTrain);
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: `Select map stop ${suburbanTram.id}` })));
+    expect(vi.mocked(fetchTransitBoard).mock.calls.at(-1)?.[0]).toEqual({ stop: suburbanTram });
+    expect(screen.getByText("Tram service update")).toBeTruthy();
+    expect(screen.queryByText("Train service update")).toBeNull();
+    assertDirectionsTo(suburbanTram);
+    fireEvent.click(screen.getByRole("button", { name: "Clear destination" }));
+    expect(screen.queryByRole("region", { name: "Test stop map" })).toBeNull();
+    expect(screen.getByText("Tram service update")).toBeTruthy();
+    assertDirectionsTo(suburbanTram);
+    expect(JSON.parse(localStorage.getItem(STORE)!)).toEqual([savedSelection]);
+  });
+
   it.each(["compact", "dashboard"] as const)("keeps the saved board in %s through centre/filter changes, then selects the list stop's board, alerts and directions", async (variant) => {
     await openPanel(variant);
     chooseLandmark();

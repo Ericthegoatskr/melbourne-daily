@@ -1,3 +1,6 @@
+import suburbanLandmarks from "../data/transitLandmarks.json";
+import { searchVicmapDestinations } from "./vicmapDestinations";
+
 export interface TransitDestination {
   id: string;
   label: string;
@@ -9,9 +12,11 @@ const ODS_BASE = "https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/dat
 const LANDMARK_DATASET = "landmarks-and-places-of-interest-including-schools-theatres-health-services-spor";
 const SOURCE_LIMIT = 8;
 const SEARCH_TIMEOUT_MS = 10_000;
-export const DESTINATION_SOURCE_URL = "https://data.melbourne.vic.gov.au/explore/dataset/street-addresses/";
+export const DESTINATION_SOURCE_URL = "https://www.land.vic.gov.au/maps-and-spatial/data-services/vicmap-as-a-service";
+export const CITY_DESTINATION_SOURCE_URL = "https://data.melbourne.vic.gov.au/explore/dataset/street-addresses/";
 
-/** City of Melbourne CC BY 4.0 reference points, shared with Parking. */
+/** City of Melbourne and Vicmap CC BY 4.0 reference points. Source provenance
+ * for the suburban additions is recorded in docs/sources/transit-landmarks.md. */
 export const LANDMARKS: readonly TransitDestination[] = [
   { id: "landmark:flinders-street", label: "Flinders Street Railway Station", latitude: -37.8179063007545, longitude: 144.967064817875 },
   { id: "landmark:queen-victoria-market", label: "Queen Victoria Market", latitude: -37.8075002018073, longitude: 144.957158515056 },
@@ -21,11 +26,34 @@ export const LANDMARKS: readonly TransitDestination[] = [
   { id: "landmark:southern-cross", label: "Southern Cross Railway Station", latitude: -37.8181633057171, longitude: 144.952944748845 },
   { id: "landmark:royal-melbourne-hospital", label: "Royal Melbourne Hospital", latitude: -37.7993071664096, longitude: 144.956389746765 },
   { id: "landmark:university-of-melbourne", label: "University of Melbourne", latitude: -37.7982892284927, longitude: 144.96099520158 },
+  ...suburbanLandmarks,
 ];
 
 export interface TransitDestinationSearchResult {
   destinations: TransitDestination[];
   partial: boolean;
+}
+
+type MetroCoverage = Pick<typeof import("./melbourneMetro"), "isMelbourneMetro">;
+/** Module downloads cannot be aborted, so stop waiting at the search deadline
+ * and ignore late completion. Never display unfiltered remote points. */
+export function loadMetroCoverage(
+  signal: AbortSignal,
+  loader: () => Promise<MetroCoverage> = () => import("./melbourneMetro"),
+): Promise<MetroCoverage | null> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (coverage: MetroCoverage | null) => {
+      if (settled) return;
+      settled = true;
+      signal.removeEventListener("abort", cancel);
+      resolve(coverage);
+    };
+    const cancel = () => finish(null);
+    if (signal.aborted) { cancel(); return; }
+    signal.addEventListener("abort", cancel, { once: true });
+    void loader().then(finish, () => finish(null));
+  });
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -101,22 +129,32 @@ export async function searchTransitDestinations(query: string, signal?: AbortSig
   signal?.addEventListener("abort", cancel, { once: true });
   const timer = setTimeout(cancel, SEARCH_TIMEOUT_MS);
   try {
-    const responses = await Promise.allSettled([
-      searchSource(trimmed, false, controller.signal),
-      searchSource(trimmed, true, controller.signal),
+    // The boundary is a separate chunk, needed only for submitted searches.
+    // Local landmark choices and normal transport browsing do not load it.
+    const [coverage, responses] = await Promise.all([
+      loadMetroCoverage(controller.signal),
+      Promise.allSettled([
+        searchVicmapDestinations(trimmed, controller.signal),
+        searchSource(trimmed, false, controller.signal),
+        searchSource(trimmed, true, controller.signal),
+      ]),
     ]);
     if (signal?.aborted) throw new DOMException("Destination search cancelled.", "AbortError");
-    let partial = false;
+    let partial = !coverage;
     const unique = new Map(local.map((destination) => [destination.id, destination]));
     for (const result of responses) {
       if (result.status === "rejected") partial = true;
       else {
         partial ||= result.value.partial;
-        for (const destination of result.value.destinations) if (!unique.has(destination.id)) unique.set(destination.id, destination);
+        for (const destination of result.value.destinations) {
+          if (coverage?.isMelbourneMetro(destination.latitude, destination.longitude) && !unique.has(destination.id)) {
+            unique.set(destination.id, destination);
+          }
+        }
       }
     }
     if (partial && !unique.size) throw new Error("Destination search is temporarily unavailable. Try again or choose a landmark.");
-    return { destinations: [...unique.values()], partial };
+    return { destinations: [...unique.values()].slice(0, 20), partial };
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", cancel);

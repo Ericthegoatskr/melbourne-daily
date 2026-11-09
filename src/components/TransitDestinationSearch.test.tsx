@@ -20,6 +20,23 @@ beforeEach(() => { vi.clearAllMocks(); vi.mocked(searchTransitDestinations).mock
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("submitted destination selection", () => {
+  it("keeps suburb-qualified results distinct and passes the selected place unchanged", async () => {
+    const boxHill = { id: "vicmap:box-hill", label: "8 Arnold Street, Box Hill VIC 3128", latitude: -37.8187, longitude: 145.122 };
+    const nearbyAddress = { id: "vicmap:mont-albert", label: "8 Arnold Street, Other Suburb VIC 3000", latitude: -37.817, longitude: 145.107 };
+    vi.mocked(searchTransitDestinations).mockResolvedValue({ destinations: [boxHill, nearbyAddress], partial: false });
+    const onSelect = vi.fn();
+    render(<TransitDestinationSearch onSelect={onSelect} />);
+    expect(screen.getByText(/Search Greater Melbourne\. For an address, include the suburb/)).toBeTruthy();
+    type("8 Arnold Street Box Hill");
+    expect(searchTransitDestinations).not.toHaveBeenCalled();
+    await submit();
+    const results = within(screen.getByRole("region", { name: "Matching destinations" }));
+    expect(results.getByRole("button", { name: nearbyAddress.label })).toBeTruthy();
+    fireEvent.click(results.getByRole("button", { name: boxHill.label }));
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(boxHill);
+    expect(document.activeElement).toBe(screen.getByRole("textbox", { name: "Find a destination" }));
+  });
+
   it("does not search while typing or select a returned result automatically", async () => {
     const onSelect = vi.fn();
     render(<TransitDestinationSearch onSelect={onSelect} />);
@@ -35,13 +52,13 @@ describe("submitted destination selection", () => {
     expect(screen.queryByRole("region", { name: "Matching destinations" })).toBeNull();
     expect(document.activeElement).toBe(screen.getByRole("textbox", { name: "Find a destination" }));
   });
-  it("selects a bundled landmark without any query", () => {
+  it.each([square, LANDMARKS.find((place) => place.label === "Box Hill Central, Box Hill")!])("selects the bundled landmark $label without any query", (landmark) => {
     const onSelect = vi.fn();
     render(<TransitDestinationSearch onSelect={onSelect} />);
     const landmarkSelect = screen.getByRole("combobox", { name: "Choose a landmark" });
     landmarkSelect.focus();
-    fireEvent.change(landmarkSelect, { target: { value: square.id } });
-    expect(onSelect).toHaveBeenCalledExactlyOnceWith(square);
+    fireEvent.change(landmarkSelect, { target: { value: landmark.id } });
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(landmark);
     expect(searchTransitDestinations).not.toHaveBeenCalled();
     expect(screen.getByRole("combobox", { name: "Choose a landmark" })).toHaveProperty("value", "");
     expect(document.activeElement).toBe(landmarkSelect);
