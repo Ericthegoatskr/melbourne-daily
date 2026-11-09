@@ -10,6 +10,35 @@ Train platforms use the supplied `platform_code`. Rail-replacement boarding poin
 
 Every record uses `idScheme: "gtfs"`; a numeric GTFS ID is not assumed to be a PTV stop ID. The PTV adapter uses the documented `gtfs=true` departures option and preserves upstream stop identity separately. Route and direction identifiers come from PTV, not from the static GTFS directory.
 
+## Nearby-stop matching
+
+The homepage and transport page use the same `NearbyStops` widget with this directory. **Use my current location** requests a single browser location fix after an explicit user action. Matching runs locally with the Haversine formula, orders results by straight-line distance and shows at most 12 results. The radius is 2 km by default, with 1, 2 and 5 km choices; the mode filter offers All, Trains and Trams. Changing these filters reuses a valid fix and does not request another location.
+
+For nearby results, train platforms with the same station base name are grouped only within 500 m proximity. A station result uses the nearest mapped point in its group for distance and retains that point's original GTFS stop object when selected. Grouping does not invent a new station ID or replace the directory records. Opposite-side tram boarding points remain distinct results with their own IDs and coordinates. Rail-replacement bus boarding points are excluded from nearby results but remain available in text search.
+
+Distances describe approximate straight-line separation from the device fix to a mapped stop point. They do not identify a station entrance, a walkable path, travel time or a step-free route. The location's reported accuracy and capture time remain visible so that users can assess the estimate. A fix with accuracy worse than 1,000 m is rejected. After ten minutes, the fix expires and nearby results are hidden until a manual location refresh.
+
+Choosing a result is a separate action. It supplies the original stop identity and mode to the existing departure-board flow, including its route/direction filters and service updates. Finding or filtering nearby stops never selects a board automatically. Location errors, cancellation, expiry and clearing nearby results preserve the selected board, saved favourites and text search. Directory failures retain the existing directory retry path, while location failures explain the problem and keep text search available.
+
+### Location lifecycle and privacy
+
+The widget uses one `getCurrentPosition` request, not `watchPosition`. The browser request has a 15-second timeout and an application timeout completes the pending state after 20 seconds if the browser does not respond. Denied permission, unavailable location, timeout, unsupported geolocation and an insecure context have actionable fallback text. Cancellation, a later request, clearing and unmounting invalidate obsolete callbacks so that a late success cannot restore old results. Refreshing an expired fix always requires another user action.
+
+Device coordinates, accuracy and capture time are ephemeral page state. They are not written to local or session storage, added to URLs, or sent in application network requests. Matching needs only the already-public GTFS directory. Explicit stop selection sends the same stop/mode and applicable route/direction identifiers used by the existing public PTV read endpoint; it never sends device coordinates. PTV credentials remain backend Secrets. Nearby matching does not alter the private EPA backend or its public snapshot path.
+
+### Nearby-stop manual QA
+
+Use local geolocation overrides or mocks for reproducible cases; do not publish fixture departures or add a production coordinate override.
+
+- On both page entries, test desktop and narrow mobile layouts, touch targets, keyboard controls, visible focus and status announcements. Confirm a page load, filter change or ordinary text search does not request location permission.
+- Supply an accurate fix near known train and tram stops. Check distance ordering, the 12-result limit, all mode/radius combinations and reuse of the same capture time while filtering. Confirm train platforms group by base name within 500 m, a grouped choice retains the nearest mapped point's GTFS identity, and opposite-side tram stops remain distinct. Check that replacement-bus points are absent nearby but still searchable by text.
+- Choose a nearby stop and verify the existing train/tram board, route/direction filters, departures and service updates. Finding or filtering nearby stops must not change an already-selected board. Favourites and text search must continue to work.
+- Exercise permission denial, unavailable location, the browser's 15-second timeout, the 20-second application timeout, unsupported geolocation and an insecure context. Check usable text-search fallback, retry where appropriate and no indefinite pending state. An accuracy value over 1,000 m must not produce nearby results.
+- Exercise cancel/clear while pending, a second request after cancellation and navigation away before a callback. Deliver the old callback late and confirm it cannot restore results or overwrite a newer fix. Clearing or failing a request must preserve the selected board and saved selections.
+- Advance the clock beyond ten minutes from capture. Results must disappear and explain that a manual refresh is required; returning to a hidden tab must not reveal an expired list. A fresh fix restores results only after another explicit request.
+- Use a valid fix outside directory coverage and a small radius with no matching mode. Show a useful empty state with radius/mode choices and text search, without inventing a nearest result beyond the radius.
+- Inspect the URL, local/session storage and network traffic before and after locating, filtering, clearing and selecting. No device coordinates may appear. Locating alone must not start a PTV board lookup or change an existing board; explicit selection uses only the established stop/mode and route/direction request fields. Confirm no provider key or private-backend credential appears in the browser.
+
 ## Collector
 
 Run with Python 3.9 or later; only the standard library is required:

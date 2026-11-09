@@ -35,6 +35,7 @@ import {
   melbourneTime,
 } from "../lib/resource";
 import { Badge, ExternalLink, SourceTime } from "./ui";
+import NearbyStops from "./NearbyStops";
 import "./TransitPanel.css";
 
 const serviceDate = new Intl.DateTimeFormat("en-AU", {
@@ -102,6 +103,14 @@ export default function CommutePanel({
   const [directoryLoading, setDirectoryLoading] = useState(true);
   const [localRevision, setLocalRevision] = useState(0);
   const searchInput = useRef<HTMLInputElement>(null);
+  const departureRegion = useRef<HTMLElement | null>(null);
+  const focusNearbySelection = useRef(false);
+  useEffect(() => {
+    if (selection && focusNearbySelection.current) {
+      departureRegion.current?.focus();
+      focusNearbySelection.current = false;
+    }
+  }, [selection]);
   const configured = transitApiConfigured();
   useEffect(() => {
     const controller = new AbortController();
@@ -181,6 +190,15 @@ export default function CommutePanel({
   }
 
   // Both presentations use the same request, persistence and freshness state.
+  const nearbyStops = <NearbyStops
+    directory={directory}
+    directoryLoading={directoryLoading}
+    directoryError={directoryError}
+    onRetryDirectory={() => setLocalRevision((n) => n + 1)}
+    onSelect={(stop) => { focusNearbySelection.current = true; setSelection({ stop }); setEditing(false); setQuery(""); }}
+    selectedStop={selection?.stop}
+    now={now}
+  />;
   const savedStops = (
     <>
       {saved.length > 0 && (
@@ -587,10 +605,11 @@ export default function CommutePanel({
         <div className="card-heading"><div className="card-title"><MapPin size={19} aria-hidden /><h2 id="tr-stops-title">Find your stop</h2></div><Badge>{saved.length} / 6 saved</Badge></div>
         <p className="card-subtitle">Your regular journeys, a little closer.</p>
         {savedStops}
+        {nearbyStops}
         {stopSearch}
         {selection && <div className="departure-board" role="region" aria-label="Selected stop">{selectedStop}</div>}
       </section>
-      <section className="card tr-departures-panel" id="departures" aria-labelledby="tr-departures-title">
+      <section ref={(node) => { departureRegion.current = node; }} tabIndex={-1} className="card tr-departures-panel" id="departures" aria-labelledby="tr-departures-title">
         <div className="card-heading"><div className="card-title"><TrainFront size={19} aria-hidden /><h2 id="tr-departures-title">Departures</h2></div><Badge tone={!configured ? "amber" : "neutral"}>{boardStatus}</Badge></div>
         <p className="card-subtitle">{selection ? `${departureStopName}${allPlatforms ? " · All platforms" : ""} · ${selection.directionName || "All directions"}` : "Your next train or tram, when live data is available."}</p>
         {departureContent}
@@ -613,8 +632,9 @@ export default function CommutePanel({
         <button className="text-button" onClick={() => { setEditing(!editing); if (!editing) setTimeout(() => searchInput.current?.focus(), 0); }}>{editing ? "Close search" : "Find a stop"}</button>
       </div>
       {savedStops}
+      {nearbyStops}
       {stopSearch}
-      {selection && <div className="departure-board" aria-label="Selected stop departures">{selectedStop}{departureContent}</div>}
+      {selection && <div ref={(node) => { departureRegion.current = node; }} tabIndex={-1} className="departure-board" aria-label="Selected stop departures">{selectedStop}{departureContent}</div>}
       {attribution}
     </div>
   );

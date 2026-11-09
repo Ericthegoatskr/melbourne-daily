@@ -16,6 +16,8 @@ The [EPA air-quality dashboard](https://ericthegoatskr.github.io/melbourne-daily
 
 The [PTV transport dashboard](https://ericthegoatskr.github.io/melbourne-daily/transport.html) shares the homepage's train/tram stop search and saved selections. Its dedicated workspace separates stop selection, departures and service updates. Its enabled PTV connection supplies live estimates where available, scheduled services and associated service updates. Train boards cover all station platforms; tram boards may include both directions. Use route/direction filters and check each service’s platform or destination. Official transport links remain available, and the decorative tram illustration does not represent a live service or route.
 
+The homepage and transport page also share a nearby-stop finder. **Use my current location** requests one browser location fix, then matches it against the local directory. Choose All, Trains or Trams and a 1, 2 or 5 km radius (2 km by default); up to 12 results appear in distance order. Train platforms are grouped into nearby station results, while opposite-side tram stops remain separate. Distances are approximate straight-line distances to mapped stop points, not walking routes or station entrances. Choosing a result opens the existing departure board; finding nearby stops never chooses one automatically. See [nearby matching and checks](docs/transit-directory.md#nearby-stop-matching).
+
 The reusable theme is in `src/styles/tokens.css`; components and interaction rules are documented in the [visual system guide](docs/design-system.md). The homepage, weather, air-quality and transport pages and separate Parking Dashboard use the same collection style. Dedicated layout rules are scoped in `src/WeatherDashboard.css`, `src/AirDashboard.css` and `src/TransportDashboard.css`.
 
 Each destination has its own featured palette: **Home — Navy & coral**, **Parking — Walnut & amber**, **Weather & UV — Sunset glow**, **Air quality — Forest & mint**, and **Transport — Indigo & iris**. Use **Colour theme** in the sidebar/mobile menu to restore Original light. That featured/light preference persists across the five dashboards; each page retains its own identity when featured colours are enabled.
@@ -34,6 +36,7 @@ Every dashboard has the same series navigation: Home, Parking, Weather & UV, Air
 - City of Melbourne parking sensor totals and street summaries, with access to the existing parking map.
 - CAMS Global PM2.5 and PM10 estimates, labeled as regional model values rather than EPA observations.
 - Metro train and tram stop search using the official GTFS directory. Save up to six stop selections in the current browser, restore them on the next visit and remove them individually.
+- Nearby train stations and tram stops after an explicit location request, with local distance matching, mode/radius filters and a manual refresh when the location expires.
 - Official departures, journey planning, network status, tram changes, EPA AirWatch and road-traffic links.
 - Independent loading, retry, delayed and unavailable states, source timestamps, mobile navigation and keyboard-accessible controls.
 
@@ -77,6 +80,8 @@ For air-quality changes, check desktop and narrow mobile layouts, station search
 
 For transport-page changes, check train/tram search, saved-stop restoration, directory failure/retry, mobile navigation and official links. Without a configured connection, both live panels must stay awaiting activation and make no transit API request. With local test fixtures, check selected-stop changes, live versus scheduled departures, service-update details and the two-minute expiry of both panels. Test fixtures must not be published. PTV credentials remain backend secrets; public frontend configuration contains only the transport service origin.
 
+For nearby-stop changes, check the homepage and transport page at desktop and narrow mobile sizes, including keyboard use. Test an accurate location, each mode/radius filter, train-platform grouping, separate tram boarding points and no nearby coverage. Check denial, unavailable location, timeout, unsupported/insecure contexts, accuracy worse than 1 km and expiry after ten minutes. Cancel or clear during a request, refresh again and navigate away to check that late callbacks cannot restore cleared or obsolete results. A location failure or clear must preserve the selected board, favourites and text search. Inspect network requests, the URL and browser storage: device coordinates must remain in memory, and only explicitly choosing a result may change the board's stop/mode and existing route/direction request. The [directory guide](docs/transit-directory.md#nearby-stop-manual-qa) has the detailed checks.
+
 ## GitHub Pages and directory updates
 
 The repository is `Ericthegoatskr/melbourne-daily`, with Vite's base path set to `/melbourne-daily/`. Its multi-page build emits `index.html`, `weather.html`, `air.html` and `transport.html`. Pages uses **GitHub Actions** as its build and deployment source. [pages.yml](.github/workflows/pages.yml) verifies the project before deploying `dist/`.
@@ -102,6 +107,7 @@ src/components/WeatherUVPanel.tsx Observed UV, model UV chart and daylight panel
 src/components/AirReadings.tsx EPA category, pollutant and regional-model cards
 src/styles/tokens.css          Collection colour, surface and motion tokens
 src/components/CommutePanel.tsx Shared stop search, favourites, departures and updates
+src/components/NearbyStops.tsx Shared location request, nearby-stop results and selection
 src/components/CollectionNav.tsx Shared series links and mobile page switching
 src/lib/useNavigationDrawer.ts Shared drawer focus, scroll lock and breakpoint cleanup
 src/components/EpaPanel.tsx     Nearby station observations and unavailable state
@@ -121,6 +127,8 @@ The sibling `melbourne-daily-api` directory is generated Sites hosting scaffoldi
 ## Data and privacy
 
 Suburb selection, saved stops/directions and pinned shortcuts stay in this browser's local storage. There is no account system or cross-device sync. Public feeds are requested from their providers. For EPA, the browser downloads public station data and handles nearest-station matching, searching and manual selection locally, sending no location query or credential to the private backend. The EPA provider key stays in Sites; the separate service-access credential is stored only as an Actions Secret. The dedicated air-quality page uses this same private-backend → Actions collector → validated public snapshot path. The transport connection sends the selected stop, mode and optional route/direction IDs to its public read endpoint; it sends no provider key or private service-access credential.
+
+Device location is separate from the saved suburb and stop preferences. The nearby-stop finder calls `getCurrentPosition` only after a user action; it does not track movement with `watchPosition`. Coordinates, reported accuracy and capture time stay in page memory and never enter a URL, browser storage or an application network request. The finder shows the accuracy and capture time, rejects fixes with accuracy worse than 1,000 m, and hides results once the fix is ten minutes old until the user refreshes it. Clearing the location removes nearby results without changing the selected departure board or saved stops. Selecting a nearby result passes its original GTFS stop identity into the same public PTV board flow; device coordinates are not sent to that service. PTV keys remain backend Secrets, and the EPA backend remains private.
 
 Open-Meteo's free API is for non-commercial use. Data credit includes Open-Meteo, CAMS / Copernicus Atmosphere Monitoring Service and City of Melbourne. Transport data is licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence. **UV observations courtesy of ARPANSA.** Read the [ARPANSA UV data disclaimer](https://www.arpansa.gov.au/our-services/monitoring/ultraviolet-radiation-monitoring/ultraviolet-radation-data-information#Disclaimer).
 
