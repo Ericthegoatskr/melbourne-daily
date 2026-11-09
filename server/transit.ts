@@ -529,7 +529,11 @@ export async function getDepartures(
   if (selection.directionId !== undefined)
     parameters.set("direction_id", String(selection.directionId));
   let path = `/v3/departures/route_type/${type}/stop/${selection.stopId}`;
-  if (selection.routeId !== undefined) path += `/route/${selection.routeId}`;
+  // GTFS stop lookup combined with PTV's route-ID path returns empty boards
+  // for real train/tram stops. Keep the supported general GTFS lookup and
+  // filter its expanded routes in parsePTVDepartures before the result limit.
+  if (selection.routeId !== undefined && selection.idScheme !== "gtfs")
+    path += `/route/${selection.routeId}`;
   const payload = await fetchPTV(path, parameters, env, signal);
   return parsePTVDepartures(payload, selection, new Date().toISOString());
 }

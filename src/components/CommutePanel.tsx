@@ -146,6 +146,11 @@ export default function CommutePanel({
     selection &&
     saved.some((item) => selectionId(item) === selectionId(selection));
   const allDirections = board?.directions || [];
+  const allPlatforms =
+    selection?.stop.idScheme === "gtfs" && selection.stop.mode === "train";
+  const departureStopName = allPlatforms
+    ? selection.stop.name.replace(/ · Platform .+$/, "")
+    : selection?.stop.name;
 
   function save() {
     if (!selection || isSaved || saved.length >= 6) return;
@@ -299,7 +304,8 @@ export default function CommutePanel({
           )}
           <p className="commute-help">
             Save up to six stops on this device. Route and direction choices
-            appear when departures are available.
+            appear when departures are available. Train boards cover all
+            platforms; tram boards may include both directions.
           </p>
           {directory && (
             <small className="directory-date">
@@ -324,6 +330,7 @@ export default function CommutePanel({
           <strong>{selection.stop.name}</strong>
           <span>
             {selection.stop.mode === "train" ? "Metro train" : "Tram"} ·{" "}
+            {allPlatforms && "All platforms · "}
             {selection.directionName || "All directions"}
           </span>
         </div>
@@ -545,7 +552,22 @@ export default function CommutePanel({
     <p className="commute-help" role="status">Checking departures…</p>
   ) : !board ? (
     <p className="commute-help" role="status">Departure information has expired.{" "}<button className="inline-button" onClick={() => setLocalRevision((n) => n + 1)}>Refresh</button></p>
-  ) : <>{departureRows}{!dashboard && serviceAlerts}{boardFooter}</>;
+  ) : <>
+    {allPlatforms ? (
+      <p className="commute-help">
+        <strong>All station platforms.</strong> Check the platform shown for
+        each service.
+      </p>
+    ) : selection.stop.idScheme === "gtfs" && selection.stop.mode === "tram" && (
+      <p className="commute-help">
+        {selection.directionId === undefined ? (
+          <><strong>Both directions may appear.</strong> Choose Route &amp; direction
+            to narrow the board.</>
+        ) : "Showing your selected route and direction. Check the destination before boarding."}
+      </p>
+    )}
+    {departureRows}{!dashboard && serviceAlerts}{boardFooter}
+  </>;
 
   const serviceContent = !configured ? (
     <div className="tr-panel-empty" role="status"><Clock3 size={29} aria-hidden /><strong>Live service updates are awaiting activation.</strong><p>Check Transport Victoria for current disruptions before travelling.</p></div>
@@ -570,7 +592,7 @@ export default function CommutePanel({
       </section>
       <section className="card tr-departures-panel" id="departures" aria-labelledby="tr-departures-title">
         <div className="card-heading"><div className="card-title"><TrainFront size={19} aria-hidden /><h2 id="tr-departures-title">Departures</h2></div><Badge tone={!configured ? "amber" : "neutral"}>{boardStatus}</Badge></div>
-        <p className="card-subtitle">{selection ? `${selection.stop.name} · ${selection.directionName || "All directions"}` : "Your next train or tram, when live data is available."}</p>
+        <p className="card-subtitle">{selection ? `${departureStopName}${allPlatforms ? " · All platforms" : ""} · ${selection.directionName || "All directions"}` : "Your next train or tram, when live data is available."}</p>
         {departureContent}
       </section>
       <section className="card tr-services-panel" id="services" aria-labelledby="tr-services-title">

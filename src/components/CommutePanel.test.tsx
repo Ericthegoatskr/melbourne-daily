@@ -197,6 +197,76 @@ async function chooseStation() {
 }
 
 describe("commute search, saved selections and honest departures", () => {
+  it.each(["compact", "dashboard"] as const)(
+    "labels the %s train board as all platforms while preserving the directory selection",
+    async (variant) => {
+      vi.mocked(transitApiConfigured).mockReturnValue(true);
+      await act(async () => {
+        render(<CommutePanel now={NOW} revision={0} variant={variant} />);
+      });
+      await chooseStation();
+      expect(screen.getByText("All station platforms.")).toBeTruthy();
+      expect(screen.getByText(/Check the platform shown for each service/)).toBeTruthy();
+      expect(screen.getByText("Metro train · All platforms · All directions")).toBeTruthy();
+      expect(screen.getByText("Frankston line · Platform 1")).toBeTruthy();
+      expect(screen.getByText("Frankston line · Platform 2")).toBeTruthy();
+      if (variant === "dashboard") {
+        const departures = within(screen.getByRole("region", { name: "Departures" }));
+        expect(departures.getByText("Flinders Street Station · All platforms · All directions")).toBeTruthy();
+        expect(departures.queryByText(station.name)).toBeNull();
+      }
+      fireEvent.click(screen.getByRole("button", { name: "Save this stop and direction" }));
+      expect(JSON.parse(localStorage.getItem(STORE)!)).toEqual([{ stop: station }]);
+      expect(vi.mocked(fetchTransitBoard).mock.calls.at(-1)?.[0].stop).toEqual(station);
+    },
+  );
+
+  it("explains both tram directions and retains the boarding point when a direction is chosen", async () => {
+    vi.mocked(transitApiConfigured).mockReturnValue(true);
+    vi.mocked(fetchTransitBoard).mockImplementation(async (selection) => {
+      const board = boardFor(selection);
+      return {
+        ...board,
+        upstreamStopId: 2206,
+        directions: [
+          { id: 0, name: "East Coburg", routeId: 1, routeName: "Route 1" },
+          { id: 1, name: "South Melbourne Beach", routeId: 1, routeName: "Route 1" },
+        ],
+        departures: board.departures.slice(0, 2).map((departure, index) => ({
+          ...departure,
+          routeId: 1,
+          directionId: index,
+          routeName: "Route 1",
+          routeNumber: "1",
+          destination: index ? "South Melbourne Beach" : "East Coburg",
+          platform: null,
+        })).filter((departure) => selection.directionId === undefined || departure.directionId === selection.directionId),
+        disruptions: [],
+      };
+    });
+    await openPanel();
+    fireEvent.click(screen.getByRole("button", { name: "Trams" }));
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "Bourke" } });
+    await act(async () => {
+      fireEvent.click(within(screen.getByRole("region", { name: "Matching stops" })).getByRole("button", { name: /Stop 19497/ }));
+    });
+    expect(screen.getByText("Both directions may appear.")).toBeTruthy();
+    expect(screen.getByText(/Choose Route & direction to narrow the board/)).toBeTruthy();
+    expect(screen.getByText("East Coburg", { selector: "strong" })).toBeTruthy();
+    expect(screen.getByText("South Melbourne Beach", { selector: "strong" })).toBeTruthy();
+    await act(async () => {
+      fireEvent.change(screen.getByRole("combobox", { name: "Route & direction" }), { target: { value: "1:1" } });
+    });
+    expect(screen.queryByText("Both directions may appear.")).toBeNull();
+    expect(screen.getByText(/Showing your selected route and direction/)).toBeTruthy();
+    expect(screen.queryByText("East Coburg", { selector: "strong" })).toBeNull();
+    expect(vi.mocked(fetchTransitBoard).mock.calls.at(-1)?.[0]).toMatchObject({
+      stop: tram, routeId: 1, directionId: 1,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save this stop and direction" }));
+    expect(JSON.parse(localStorage.getItem(STORE)!)[0]).toMatchObject({ stop: tram, routeId: 1, directionId: 1 });
+  });
+
   it("searches real station names and switches to separately identified tram boarding points without an API", async () => {
     await openPanel();
     const search = screen.getByRole("searchbox", {

@@ -172,8 +172,8 @@ function disruption(raw: unknown): TransitDisruption {
     updatedAt: optionalTime(item.updatedAt),
     startsAt: optionalTime(item.startsAt),
     endsAt: optionalTime(item.endsAt),
-    routeIds: list(item.routeIds, id),
-    stopIds: list(item.stopIds, id),
+    routeIds: list(item.routeIds, id, 1000),
+    stopIds: list(item.stopIds, id, 1000),
   };
 }
 

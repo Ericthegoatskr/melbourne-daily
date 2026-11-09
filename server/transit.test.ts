@@ -158,6 +158,43 @@ describe("PTV protocol and credential isolation", () => {
     expect(JSON.stringify(board)).not.toContain("signature");
   });
 
+  it("filters PTV routes after GTFS lookup without mixing route identifier namespaces", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(checkedAt);
+    const payload = fixture();
+    Object.assign(payload.routes, {
+      "13": { route_id: 13, route_type: 0, route_name: "Other line", route_number: "" },
+    });
+    payload.departures[0].route_id = 13;
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", fetch);
+
+    const board = await getDepartures(
+      { stopId: 11212, mode: "train", idScheme: "gtfs", routeId: 12, directionId: 5 },
+      env,
+    );
+    const url = new URL(fetch.mock.calls[0][0]);
+    expect(url.pathname).toBe("/v3/departures/route_type/0/stop/11212");
+    expect(url.searchParams.get("gtfs")).toBe("true");
+    expect(url.searchParams.get("direction_id")).toBe("5");
+    expect(board).toMatchObject({ stopId: 11212, idScheme: "gtfs", upstreamStopId: 1071 });
+    expect(board.departures).toHaveLength(2);
+    expect(board.departures.every((item) => item.routeId === 12 && item.directionId === 5)).toBe(true);
+    expect(board.disruptions.map((item) => item.id)).toEqual([9]);
+  });
+
+  it("keeps route-specific requests for native PTV stop identifiers", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(checkedAt);
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(fixture())));
+    vi.stubGlobal("fetch", fetch);
+    const board = await getDepartures({ ...selection, routeId: 12, directionId: 5 }, env);
+    const url = new URL(fetch.mock.calls[0][0]);
+    expect(url.pathname).toBe("/v3/departures/route_type/0/stop/1071/route/12");
+    expect(url.searchParams.has("gtfs")).toBe(false);
+    expect(board.departures).toHaveLength(3);
+  });
+
   it("never leaks an upstream error body or signed request URL", async () => {
     vi.stubGlobal(
       "fetch",

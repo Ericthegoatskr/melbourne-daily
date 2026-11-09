@@ -142,6 +142,34 @@ describe("live transport client", () => {
     expect(() => parseTransitBoard(data, now)).toThrow(/invalid/);
   });
 
+  it("keeps a departure board usable when a disruption affects more than 100 stops or routes", () => {
+    const data = fixture();
+    data.disruptions = [{
+      id: 9,
+      title: "Network service changes",
+      description: "Check the operator for affected services.",
+      url: null,
+      status: "Current",
+      updatedAt: null,
+      startsAt: null,
+      endsAt: null,
+      routeIds: Array.from({ length: 1000 }, (_, index) => index),
+      stopIds: Array.from({ length: 1000 }, (_, index) => 1000 + index),
+    }];
+    const board = parseTransitBoard(data, now);
+    expect(board.departures).toEqual(data.departures);
+    expect(board.disruptions[0].routeIds).toEqual(data.disruptions[0].routeIds);
+    expect(board.disruptions[0].stopIds).toEqual(data.disruptions[0].stopIds);
+    for (const field of ["routeIds", "stopIds"] as const) {
+      const oversized = structuredClone(data);
+      oversized.disruptions[0][field].push(2000);
+      expect(() => parseTransitBoard(oversized, now)).toThrow(/invalid/);
+      const invalidId = structuredClone(data);
+      invalidId.disruptions[0][field][999] = -1;
+      expect(() => parseTransitBoard(invalidId, now)).toThrow(/invalid/);
+    }
+  });
+
   it("sends the stop namespace and verifies the returned selection", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(now);
