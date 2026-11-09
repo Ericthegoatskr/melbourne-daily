@@ -183,7 +183,10 @@ export function TransitStopMap({ center, nearby, radiusMetres, selectedStop, onS
       <span>Near {center.label}</span>
       {!failed && <div className="transit-map-actions">
         <button type="button" onClick={() => {
-          if (bounds.current) map.current?.fitBounds(bounds.current, fitOptions);
+          const instance = map.current, searchBounds = bounds.current;
+          if (!instance || !searchBounds) return;
+          instance.closePopup();
+          instance.fitBounds(searchBounds, fitOptions);
         }}>Show all nearby stops</button>
         <div className="transit-map-zoom" role="group" aria-label="Stop map zoom">
           <button type="button" aria-label="Zoom out" onClick={() => map.current?.zoomOut(1, { animate: !reducedMotion() })}><span aria-hidden>−</span></button>

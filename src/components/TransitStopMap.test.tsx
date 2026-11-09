@@ -54,6 +54,7 @@ beforeEach(() => {
     if (leaflet.throwMap) throw new Error("unavailable");
     const instance = {
       container, options, fitBounds: vi.fn(), panTo: vi.fn(), zoomIn: vi.fn(), zoomOut: vi.fn(), invalidateSize: vi.fn(), eachLayer: vi.fn(),
+      closePopup: vi.fn(() => { for (const marker of leaflet.markers) marker.popup?.remove(); }),
       remove: vi.fn(() => container.replaceChildren()),
     };
     leaflet.instance = instance;
@@ -147,6 +148,24 @@ describe("nearby stop map", () => {
     render(<TransitStopMap {...base} nearby={[]} />);
     expect(leaflet.latLngBounds).not.toHaveBeenCalled();
     expect(leaflet.instance.fitBounds).toHaveBeenCalledWith({ radiusBounds: true }, { padding: [40, 40], maxZoom: 17, animate: false });
+  });
+
+  it("closes an open popup before fitting the overview after resize without changing the selected stop", () => {
+    const view = render(<TransitStopMap {...base} selectedStop={train} />);
+    const map = leaflet.instance, marker = leaflet.markers[1];
+    expect(screen.getByRole("button", { name: "View departures & walking directions" })).toBeTruthy();
+    act(() => resize([], {} as ResizeObserver));
+    map.fitBounds.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "Show all nearby stops" }));
+    expect(map.closePopup).toHaveBeenCalledTimes(1);
+    expect(map.fitBounds).toHaveBeenCalledTimes(1);
+    expect(map.closePopup.mock.invocationCallOrder[0]).toBeLessThan(map.fitBounds.mock.invocationCallOrder[0]);
+    expect(screen.queryByRole("button", { name: "View departures & walking directions" })).toBeNull();
+    expect(marker.element.getAttribute("aria-pressed")).toBe("true");
+    expect(base.onSelect).not.toHaveBeenCalled();
+    expect(base.onViewDepartures).not.toHaveBeenCalled();
+    view.rerender(<TransitStopMap {...base} selectedStop={{ ...train }} />);
+    expect(marker.openPopup).toHaveBeenCalledTimes(1);
   });
 
   it("keeps popup content within a narrow map and updates it after resizing", () => {
